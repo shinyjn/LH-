@@ -1,0 +1,1209 @@
+<title>LH 매입약정 사업계획서</title>
+<meta name="description" content="LH 민간 신축매입약정 사업의 사업수지·LH 대금 스케줄·월별 현금흐름·수익성을 계산하고 사업계획서를 만드는 도구">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@500;700&display=swap">
+<style>
+:root{
+  --ground:#F3F5F4; --surface:#FFFFFF; --sunk:#EAEFED; --ink:#15201E; --muted:#5A6A66; --faint:#8A9894;
+  --line:#D7DFDC; --line2:#E7ECEA; --accent:#0B6B5C; --accent-ink:#FFFFFF; --accent-soft:#DCEFEA;
+  --inbg:#FFF7D1; --inline:#E3C95A; --neg:#B42318; --pos:#0B6B5C; --warn:#9A6700; --warnbg:#FFF1CC;
+  --bar-in:#2F8F7C; --bar-out:#C9D3D0; --loan:#B8541A;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --serif:"Noto Serif KR","Batang",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1513; --surface:#151F1C; --sunk:#1B2724; --ink:#E3ECE9; --muted:#9AABA6; --faint:#6F807B;
+    --line:#2B3935; --line2:#22302C; --accent:#43C2A8; --accent-ink:#06201A; --accent-soft:#16352E;
+    --inbg:#332C10; --inline:#7D6A1E; --neg:#F07A6E; --pos:#43C2A8; --warn:#E3B341; --warnbg:#3A2F0E;
+    --bar-in:#43C2A8; --bar-out:#3A4A46; --loan:#F0975A;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1513; --surface:#151F1C; --sunk:#1B2724; --ink:#E3ECE9; --muted:#9AABA6; --faint:#6F807B;
+  --line:#2B3935; --line2:#22302C; --accent:#43C2A8; --accent-ink:#06201A; --accent-soft:#16352E;
+  --inbg:#332C10; --inline:#7D6A1E; --neg:#F07A6E; --pos:#43C2A8; --warn:#E3B341; --warnbg:#3A2F0E;
+  --bar-in:#43C2A8; --bar-out:#3A4A46; --loan:#F0975A;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;padding:0 16px}
+.wrap{max-width:1320px;margin:0 auto;padding-block:16px 48px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num,td.n,th.n{font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.top .eyebrow{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.top h1{margin:2px 0 0;font-size:20px;font-weight:700;text-wrap:balance}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);padding:6px 11px;border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:6px 9px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:16px 0}
+.kpi{background:var(--surface);padding:10px 14px}
+.kpi b{display:block;font-size:11.5px;font-weight:500;color:var(--muted);letter-spacing:.02em}
+.kpi span{display:block;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi small{color:var(--faint);font-size:11.5px}
+.kpi.hl span{color:var(--accent)}
+
+/* layout */
+.main{display:grid;grid-template-columns:196px minmax(0,1fr);gap:20px;align-items:start}
+nav.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:2px}
+nav.side h4{margin:12px 0 4px;font-size:11px;font-weight:600;color:var(--faint);letter-spacing:.08em}
+nav.side h4:first-child{margin-top:0}
+nav.side button{text-align:left;border:0;background:none;padding:7px 10px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:13.5px}
+nav.side button:hover{background:var(--sunk);color:var(--ink)}
+nav.side button[aria-current="page"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--line)}
+@media (max-width:860px){
+  .main{grid-template-columns:1fr}
+  nav.side{position:static;flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:4px}
+  nav.side h4{display:none}
+  nav.side button{white-space:nowrap;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+}
+.panel{min-width:0}
+.panel h2{font-size:17px;margin:0 0 4px}
+.panel .lead{color:var(--muted);margin:0 0 16px;max-width:72ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+.card h3{margin:0 0 12px;font-size:14px;font-weight:600}
+.card h3 small{font-weight:400;color:var(--faint);margin-left:6px}
+
+/* form */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px 16px}
+.fld{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fld>span{font-size:12.5px;color:var(--muted)}
+.fld .in{display:flex;align-items:center;background:var(--inbg);border:1px solid var(--inline);border-radius:5px}
+.fld .in input,.fld .in select{flex:1;min-width:0;border:0;background:none;padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums}
+.fld .in input[data-k="text"],.fld .in input[data-k="month"]{text-align:left}
+.fld .in em{font-style:normal;font-size:12px;color:var(--muted);padding-right:8px;white-space:nowrap}
+.fld small{font-size:11.5px;color:var(--faint);min-height:1em}
+.fld.wide{grid-column:1/-1}
+textarea{width:100%;min-height:84px;background:var(--inbg);border:1px solid var(--inline);border-radius:5px;padding:8px;resize:vertical;line-height:1.6}
+.legend-in{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.legend-in i{width:14px;height:10px;background:var(--inbg);border:1px solid var(--inline);border-radius:2px}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.card .tw{border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 10px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;background:var(--sunk);white-space:nowrap}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.sub td{background:var(--sunk);font-weight:600}
+tr.tot td{background:var(--accent-soft);font-weight:700;border-top:1px solid var(--accent)}
+tr.grp td:first-child{font-weight:600}
+td.neg,span.neg{color:var(--neg)}
+td .muted,.muted{color:var(--faint)}
+td.note{color:var(--muted);font-size:12px;min-width:220px}
+table.edit td{padding:3px 4px}
+table.edit input{width:100%;min-width:70px;border:1px solid transparent;background:var(--inbg);padding:5px 6px;border-radius:4px}
+table.edit input.r{text-align:right;font-variant-numeric:tabular-nums}
+table.edit input:focus{border-color:var(--inline)}
+.x{border:0;background:none;color:var(--faint);cursor:pointer;padding:4px 8px}
+.x:hover{color:var(--neg)}
+.row-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* cf table */
+.cf th,.cf td{padding:4px 8px;font-size:12px}
+.cf td:first-child,.cf th:first-child{position:sticky;left:0;background:var(--surface);z-index:1;min-width:190px}
+.cf tr.sub td:first-child{background:var(--sunk)}
+.cf th:first-child{background:var(--sunk)}
+.cf .mk{color:var(--accent);font-weight:700}
+.cf td.z{color:var(--line)}
+
+/* callouts */
+.flag{display:flex;gap:8px;align-items:flex-start;background:var(--warnbg);color:var(--ink);border-radius:6px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+.flag b{color:var(--warn)}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11.5px;font-weight:600}
+.pill.ok{background:var(--accent-soft);color:var(--pos)}
+.pill.bad{background:var(--warnbg);color:var(--neg)}
+.pill.mid{background:var(--warnbg);color:var(--warn)}
+
+/* chart */
+.chart{overflow-x:auto}
+.chart svg{display:block;min-width:640px;width:100%;height:auto}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--sans)}
+.chart .grid-l{stroke:var(--line2)}
+.chart .axis{stroke:var(--line)}
+.keys{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin-top:6px}
+.keys i{display:inline-block;width:12px;height:10px;margin-right:5px;vertical-align:-1px;border-radius:2px}
+
+/* gantt */
+.gantt{display:grid;gap:4px;font-size:12px}
+.gantt .gr{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center}
+.gantt .track{position:relative;height:16px;background:var(--sunk);border-radius:3px}
+.gantt .bar{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:3px;min-width:4px}
+.gantt .bar.pt{background:var(--loan);width:6px!important;border-radius:50%}
+.gantt .scale{display:flex;justify-content:space-between;color:var(--faint);font-size:11px}
+@media (max-width:560px){.gantt .gr{grid-template-columns:110px 1fr}}
+
+/* sensitivity */
+.heat td.n{min-width:84px}
+.heat td.base{outline:2px solid var(--accent);outline-offset:-2px;font-weight:700}
+
+/* document */
+.doc{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:40px clamp(18px,5vw,56px);max-width:900px}
+.doc .cover{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:28px}
+.doc .cover .k{font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.doc .cover h1{font-family:var(--serif);font-size:26px;line-height:1.35;margin:8px 0 10px;text-wrap:balance}
+.doc .cover p{margin:0;color:var(--muted);font-size:13px}
+.doc h2{font-family:var(--serif);font-size:17px;margin:32px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.doc h3{font-size:14px;margin:18px 0 8px}
+.doc p{max-width:72ch;margin:0 0 10px}
+.doc table{font-size:12.5px;margin-bottom:10px}
+.doc .tw{border-radius:4px}
+.doc ul{margin:0 0 10px;padding-left:20px}
+.doc li{margin-bottom:4px}
+.doc .src{font-size:11.5px;color:var(--faint)}
+
+/* modal */
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:18px;width:min(680px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(10,20,18,.45)}
+dialog textarea{min-height:280px;font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--sunk);border-color:var(--line)}
+dialog h3{margin:0 0 8px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:8px 14px;border-radius:6px;font-size:13px;z-index:50}
+
+@media print{
+  body{background:#fff;padding:0}
+  .top,.kpis,nav.side,.noprint{display:none!important}
+  .main{display:block}
+  .doc{border:0;padding:0;max-width:none}
+  .doc h2{break-after:avoid}
+  .doc table{break-inside:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">LH 민간 신축매입약정 · 사업계획서</div>
+      <h1 id="projTitle">—</h1>
+    </div>
+    <div class="tools">
+      <div class="seg" role="group" aria-label="금액 단위" id="unitSeg">
+        <button type="button" data-u="천원">천원</button>
+        <button type="button" data-u="백만원">백만원</button>
+        <button type="button" data-u="억원">억원</button>
+      </div>
+      <button class="btn" type="button" id="bSample">샘플(부천 춘의동)</button>
+      <button class="btn" type="button" id="bNew">빈 양식</button>
+      <button class="btn" type="button" id="bExport">JSON 내보내기</button>
+      <button class="btn" type="button" id="bImport">JSON 가져오기</button>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="핵심 지표"></section>
+
+  <div class="main">
+    <nav class="side" id="nav" aria-label="섹션">
+      <h4>입력</h4>
+      <button type="button" data-tab="overview">사업개요·입지</button>
+      <button type="button" data-tab="market">시장현황 (실거래·분양)</button>
+      <button type="button" data-tab="plan">건축개요·세대</button>
+      <button type="button" data-tab="land">토지·LH 매입조건</button>
+      <button type="button" data-tab="cost">사업비 가정</button>
+      <button type="button" data-tab="fin">일정·금융</button>
+      <h4>산출</h4>
+      <button type="button" data-tab="summary">사업수지표</button>
+      <button type="button" data-tab="lh">LH 대금 스케줄</button>
+      <button type="button" data-tab="cf">월별 현금흐름</button>
+      <button type="button" data-tab="fund">자금조달</button>
+      <button type="button" data-tab="profit">수익성·민감도</button>
+      <h4>출력</h4>
+      <button type="button" data-tab="doc">사업계획서</button>
+    </nav>
+    <main class="panel" id="panel"></main>
+  </div>
+</div>
+
+<dialog id="dlg">
+  <h3 id="dlgTitle"></h3>
+  <p class="muted" id="dlgHint" style="margin:0 0 8px;font-size:12.5px"></p>
+  <textarea id="dlgText" spellcheck="false"></textarea>
+  <div class="row-actions" style="justify-content:flex-end">
+    <button class="btn" type="button" id="dlgCopy">복사</button>
+    <button class="btn pri" type="button" id="dlgOk">적용</button>
+    <button class="btn" type="button" id="dlgClose">닫기</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+/* ============================================================
+   샘플: 부천 춘의동 212-2·212-3·212-13 (총사업비표_춘의동212-2,3,13_LH매입약정.xlsx, 2026-09-12 기준)
+   ============================================================ */
+const SAMPLE = {
+  meta:{ name:"부천 춘의동 212-3외 LH 신축매입약정 개발사업", date:"2026-09-21", developer:"(시행사 기재)", trustee:"관리형토지신탁 (신탁사 미정)", contractor:"(시공사 미정)", lhOffice:"LH 인천지역본부 · 2026년 2차 민간 신축매입약정" },
+  site:{
+    address:"경기도 부천시 원미구 춘의동 212-2, 212-3, 212-13 (3필지)", zone:"제2종일반주거지역", district:"시가지경관지구",
+    roads:"대로2류·중로1류·소로2류 접함", transit:"7호선 춘의역 도보 약 5분(500m), 강남·서울역·여의도 1시간 이내", siteM2:3231, plans:["과밀억제권역","제2종일반주거지역","시가지경관지구(일반)","중로1류(폭 20m~25m)","소로2류(폭 8m~10m)","토지거래계약에관한허가구역","대로2류(폭 30m~35m)","가축사육제한구역","상대보호구역"],
+    bldgs:[{"lot":"212-3","dong":"B동","purpose":"업무시설","totArea":491.4,"floorsAbove":2,"floorsBelow":0,"useAprDay":"19940621"},{"lot":"212-3","dong":"A동","purpose":"업무시설","totArea":1383.62,"floorsAbove":2,"floorsBelow":1,"useAprDay":"19861229"},{"lot":"212-2","dong":"","purpose":"위험물저장및처리시설","totArea":346.75,"floorsAbove":2,"floorsBelow":1,"useAprDay":"19970108"}],
+    parcels:[
+      {lot:"212-3", jimok:"대", m2:2281.3, price:5335000, owner:"법인(현 사옥)", status:"업무시설 (철거 예정)"},
+      {lot:"212-2", jimok:"주유소용지", m2:800.6, price:4985000, owner:"개인", status:"주유소 (철거 예정)"},
+      {lot:"212-13", jimok:"대", m2:148.8, price:2750000, owner:"개인", status:"나지"}
+    ]
+  },
+  bldg:{ gfaM2:13650, aboveM2:8850, belowM2:4800, bcr:"60% 이하 (조례 제54조)", far:"230% → 공공임대 건설 시 120% 완화 276%", floors:"(설계 확정 시 기재)", parking:"(설계 확정 시 기재)", existingPy:672.085425 },
+  units:[ {type:"전용 59㎡", excl:59, count:120, price:500000000} ],
+  land:{ unit:18000000, acqRate:0.046, acqRelief:0.15, transfer:0, depositRate:0.1, apprUnit:20000000, supportRate:0.6, eqRate:0.1 },
+  cost:{ buildUnit:6000000, extra:3000000000, designUnit:150000, superUnit:150000, demoUnit:2000000, utility:0, art:0,
+         preserveRate:0.0316, bond:0, levy:0, trustRate:0.002, contRate:0.01,
+         sgRatio:0.7, sgLandShare:0.5, sgLandRate:0.00138, sgBldgRate:0.00199, hugRate:0.007 },
+  tax:{ baseYear:2026, growth:0.03, fmv:0.7, cityRate:0.0014, eduRate:0.2, compYearly:0 },
+  sched:{ start:"2026-10", permit:8, prep:2, cons:20, approval:1, occupancy:2 },
+  lh:{ cap:0.9, lag:1, curve:[0.014,0.02,0.033,0.037,0.038,0.038,0.044,0.049,0.052,0.055,0.057,0.06,0.063,0.069,0.073,0.073,0.073,0.068,0.056,0.028] },
+  fin:{ rate:0.045, feeRate:0.005, agentQ:30000000, hugBase:0.9, hugLimit:0.9, reuse:false, autoEq:true },
+  text:{
+    overview:"대로변 3필지(업무시설·주유소·나지)를 일괄 매입해 전용 59㎡ 공동주택 120세대를 신축하고, LH 민간 신축매입약정으로 준공 후 전량 매각한다. 관리형토지신탁 방식으로 토지확보지원금(토지 감정가의 60%)과 착공 후 3개월 단위 공사대금을 LH로부터 수령해 PF 소요를 낮추는 구조다.",
+    location:"7호선 춘의역 도보 5분(500m) 역세권. 제2종일반주거지역으로 공공임대(민간 신축매입약정 포함) 건설 시 용적률 120% 완화(230%→276%) 적용 가능.",
+    development:"부천종합운동장역 GTX-B 예정(2031, 인천~남양주). 종합운동장 일원 역세권 융복합 도시개발사업(49만㎡, 총사업비 5,360억원, 1,363세대).",
+    market:"사업지·춘의역·신중동역 반경 500m 내 전용 55~62㎡(59타입) 아파트 매매 실거래는 최근 12개월(2025.10~2026.09) 42건(11개 단지, 해제·직거래·2층 이하 제외)이며, 중위 거래가 4.73억원, 전용평당 중위 2,616만원이다. 준공연차별 전용평당 중위는 준신축 2,662만원(2건), 구축 2,616만원(40건)이다.\n본 사업 LH 매입예정가(호당 5.00억원, 전용평당 2,802만원)는 인근 전체(신축·준신축 2건으로 표본 부족) 실거래 전용평당 중위(2,616만원) 대비 107.1% 수준이다.\n신축 비교를 위해 부천시 전체 59타입 분양권 전매 실거래를 보면 최근 12개월 86건(6개 단지: 송내역 푸르지오 센트비엔, 쌍용 더 플래티넘 온수역, 소사역 롯데캐슬 더 뉴엘 외)이며, 단지별 전용평당 중위 3,424만원이다. LH 매입예정가는 이 대비 81.8% 수준이다.\n동기간 부천시 분양 11개 단지의 59타입 최고분양가는 단지별 전용평당 중위 3,346만원(중동역 다채로움 더원, 두산위브더제니스 부천, 오정 해모로 스마트시티(조합원 취소분) 외)이며, LH 매입예정가는 이 대비 83.7% 수준이다.",
+    notes:"· 매출은 제1차 감정평가 기준 매매예정금액이며, 최종 매매금액은 사용승인 후 제2차 감정평가로 확정된다.\n· HUG 도심주택 특약보증 요율(연 0.7%)은 공식 요율표 미확인 — 표준PF보증 1년물 기본요율 근사치.\n· 대출금리 연 4.5%는 한국은행 기준금리 3.00%(2026.8.27)에 가산 1.5%p를 가정한 값.\n· 국민주택채권 할인, 과밀·광역교통·학교용지 부담금, 인입비는 실행예산 확정 후 반영(현재 0).\n· 종합부동산세는 별도합산 검토 결과 0원으로 반영(원 모델 기준)."
+  },
+  comps:[],
+  risks:[
+    {risk:"2차 감정평가 매매금액 하락", level:"중", plan:"1차 감정가 대비 하한율 확인, 매매예정금액 대비 △5% 민감도에서도 흑자 유지 여부 점검"},
+    {risk:"공사비 상승·공기 지연", level:"중", plan:"확정총액 도급 + 물가변동 배제 특약, 예비비(공사비 1%) 확보, 지연 시 대리은행수수료·이자 증가분 관리"},
+    {risk:"HUG 특약보증 한도 부족", level:"중", plan:"보증대상 소요액이 한도를 초과하는 경우 자기자본 증액 또는 HUG 초기사업비보증(토지비 20% 이내) 병행"},
+    {risk:"LH 약정이행점검 미통과", level:"저", plan:"설계도면 협의·단계별 점검 일정 선반영, 커뮤니티·경비실 등 의무시설 설계 반영"},
+    {risk:"기존 건물 철거·토양오염(주유소)", level:"중", plan:"212-2 주유소 부지 토양정화 비용·기간 사전 조사, 철거비 단가 재검증"}
+  ]
+};
+
+SAMPLE.market = {"kind":"lh-plan-market","version":2,"generatedAt":"2026-09-21T11:36:12.625Z","params":{"radiusM":500,"months":12,"from":"202510","to":"202609","area":{"min":55,"max":62},"lawdCodes":["41192"],"presaleRegion":"경기 · '부천'","presaleFrom":"2025-10-01","silvScope":"부천시 원미구·부천시 소사구·부천시 오정구","silvFrom":"202510","silvTo":"202609"},"site":{"name":"사업지(춘의동 212-3)","lat":37.4983654130067,"lng":126.785494264321},"centers":[{"name":"사업지","lat":37.4983654130067,"lng":126.785494264321,"distSite":0},{"name":"춘의역","lat":37.50369919594287,"lng":126.78699775795889,"distSite":608},{"name":"신중동역","lat":37.50295164139924,"lng":126.77689833819102,"distSite":914}],"trades":[{"date":"2025-10-02","ym":"2025-10","apt":"연화마을(쌍용)","umd":"중동","jibun":"1101","dong":"1401","buildYear":1994,"excl":60,"floor":7,"price":450000000,"perPy":24793388,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4976942780217,"lng":126.780358463979,"near":"사업지","nearM":459,"siteM":459},{"date":"2025-10-11","ym":"2025-10","apt":"중동대림","umd":"중동","jibun":"3-207","dong":"104","buildYear":2000,"excl":59.79,"floor":6,"price":475000000,"perPy":26262718,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.506811181073,"lng":126.778046576783,"near":"신중동역","nearM":441,"siteM":1146},{"date":"2025-10-17","ym":"2025-10","apt":"꿈마을(한진)","umd":"중동","jibun":"1104","dong":"1009","buildYear":1994,"excl":59.88,"floor":3,"price":460000000,"perPy":25395143,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5014152566305,"lng":126.779252273177,"near":"신중동역","nearM":269,"siteM":647},{"date":"2025-10-20","ym":"2025-10","apt":"중동대림","umd":"중동","jibun":"3-207","dong":"105","buildYear":2000,"excl":59.79,"floor":6,"price":480000000,"perPy":26539168,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.506811181073,"lng":126.778046576783,"near":"신중동역","nearM":441,"siteM":1146},{"date":"2025-11-03","ym":"2025-11","apt":"꿈마을(서안)","umd":"중동","jibun":"1102","dong":"1024","buildYear":1994,"excl":59.94,"floor":4,"price":440000000,"perPy":24266691,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4989891795314,"lng":126.780007491472,"near":"사업지","nearM":489,"siteM":489},{"date":"2025-11-16","ym":"2025-11","apt":"꿈마을(삼환)","umd":"중동","jibun":"1104","dong":"1003","buildYear":1994,"excl":59.88,"floor":5,"price":484000000,"perPy":26720107,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5014152566305,"lng":126.779252273177,"near":"신중동역","nearM":269,"siteM":647},{"date":"2025-11-16","ym":"2025-11","apt":"꿈마을(건영)","umd":"중동","jibun":"1102","dong":"1021","buildYear":1994,"excl":59.98,"floor":8,"price":440000000,"perPy":24250508,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4989891795314,"lng":126.780007491472,"near":"사업지","nearM":489,"siteM":489},{"date":"2025-11-18","ym":"2025-11","apt":"꿈마을(한진)","umd":"중동","jibun":"1104","dong":"1009","buildYear":1994,"excl":59.88,"floor":6,"price":475000000,"perPy":26223245,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5014152566305,"lng":126.779252273177,"near":"신중동역","nearM":269,"siteM":647},{"date":"2025-11-19","ym":"2025-11","apt":"중동대림","umd":"중동","jibun":"3-207","dong":"105","buildYear":2000,"excl":59.79,"floor":10,"price":483000000,"perPy":26705038,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.506811181073,"lng":126.778046576783,"near":"신중동역","nearM":441,"siteM":1146},{"date":"2025-11-24","ym":"2025-11","apt":"꿈마을(한진)","umd":"중동","jibun":"1104","dong":"1009","buildYear":1994,"excl":59.88,"floor":2,"price":465000000,"perPy":25671177,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5014152566305,"lng":126.779252273177,"near":"신중동역","nearM":269,"siteM":647},{"date":"2025-11-29","ym":"2025-11","apt":"우남푸르미아","umd":"춘의동","jibun":"141-2","dong":"104","buildYear":2006,"excl":59.978,"floor":3,"price":440000000,"perPy":24251316,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5036233313681,"lng":126.784069720872,"near":"춘의역","nearM":258,"siteM":598},{"date":"2025-12-02","ym":"2025-12","apt":"꿈마을(서안)","umd":"중동","jibun":"1102","dong":"1024","buildYear":1994,"excl":59.94,"floor":1,"price":350000000,"perPy":19303050,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4989891795314,"lng":126.780007491472,"near":"사업지","nearM":489,"siteM":489},{"date":"2025-12-06","ym":"2025-12","apt":"꿈마을(건영)","umd":"중동","jibun":"1102","dong":"1021","buildYear":1994,"excl":59.91,"floor":6,"price":439000000,"perPy":24223663,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4989891795314,"lng":126.780007491472,"near":"사업지","nearM":489,"siteM":489},{"date":"2025-12-08","ym":"2025-12","apt":"꿈마을(동아)","umd":"중동","jibun":"1103","dong":"1011","buildYear":1993,"excl":59.55,"floor":6,"price":485000000,"perPy":26923691,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5000946040978,"lng":126.779707840715,"near":"신중동역","nearM":403,"siteM":545},{"date":"2025-12-25","ym":"2025-12","apt":"꿈마을(동아)","umd":"중동","jibun":"1103","dong":"1011","buildYear":1993,"excl":59.55,"floor":9,"price":529000000,"perPy":29366252,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5000946040978,"lng":126.779707840715,"near":"신중동역","nearM":403,"siteM":545},{"date":"2026-01-01","ym":"2026-01","apt":"동신","umd":"도당동","jibun":"266-3","dong":"B","buildYear":1984,"excl":59.69,"floor":2,"price":420000000,"perPy":23260676,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5069191168665,"lng":126.78318664502,"near":"춘의역","nearM":491,"siteM":973},{"date":"2026-01-05","ym":"2026-01","apt":"꿈마을(한진)","umd":"중동","jibun":"1104","dong":"1009","buildYear":1994,"excl":59.88,"floor":8,"price":460000000,"perPy":25395143,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5014152566305,"lng":126.779252273177,"near":"신중동역","nearM":269,"siteM":647},{"date":"2026-01-29","ym":"2026-01","apt":"꿈마을(동아)","umd":"중동","jibun":"1103","dong":"1011","buildYear":1993,"excl":59.55,"floor":9,"price":505000000,"perPy":28033946,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5000946040978,"lng":126.779707840715,"near":"신중동역","nearM":403,"siteM":545},{"date":"2026-02-07","ym":"2026-02","apt":"부천우림필유에듀파크","umd":"심곡동","jibun":"36-1","dong":"101동","buildYear":2019,"excl":59.7435,"floor":13,"price":470000000,"perPy":26006495,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4985327487676,"lng":126.783873472264,"near":"사업지","nearM":144,"siteM":144},{"date":"2026-03-08","ym":"2026-03","apt":"연화마을(쌍용)","umd":"중동","jibun":"1101","dong":"1401","buildYear":1994,"excl":60,"floor":10,"price":440000000,"perPy":24242424,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4976942780217,"lng":126.780358463979,"near":"사업지","nearM":459,"siteM":459},{"date":"2026-03-09","ym":"2026-03","apt":"꿈마을(동아)","umd":"중동","jibun":"1103","dong":"1011","buildYear":1993,"excl":59.55,"floor":3,"price":470000000,"perPy":26090999,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5000946040978,"lng":126.779707840715,"near":"신중동역","nearM":403,"siteM":545},{"date":"2026-03-11","ym":"2026-03","apt":"꿈마을(건영)","umd":"중동","jibun":"1102","dong":"1021","buildYear":1994,"excl":59.91,"floor":9,"price":374000000,"perPy":20637016,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4989891795314,"lng":126.780007491472,"near":"사업지","nearM":489,"siteM":489},{"date":"2026-03-14","ym":"2026-03","apt":"꿈마을(동아)","umd":"중동","jibun":"1103","dong":"1011","buildYear":1993,"excl":59.55,"floor":8,"price":520000000,"perPy":28866638,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5000946040978,"lng":126.779707840715,"near":"신중동역","nearM":403,"siteM":545},{"date":"2026-03-14","ym":"2026-03","apt":"꿈마을(동아)","umd":"중동","jibun":"1103","dong":"1011","buildYear":1993,"excl":59.55,"floor":5,"price":530000000,"perPy":29421765,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5000946040978,"lng":126.779707840715,"near":"신중동역","nearM":403,"siteM":545},{"date":"2026-03-18","ym":"2026-03","apt":"중동대림","umd":"중동","jibun":"3-207","dong":"105","buildYear":2000,"excl":59.79,"floor":2,"price":390000000,"perPy":21563074,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.506811181073,"lng":126.778046576783,"near":"신중동역","nearM":441,"siteM":1146},{"date":"2026-03-20","ym":"2026-03","apt":"연화마을(쌍용)","umd":"중동","jibun":"1101","dong":"1401","buildYear":1994,"excl":60,"floor":12,"price":442500000,"perPy":24380165,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4976942780217,"lng":126.780358463979,"near":"사업지","nearM":459,"siteM":459},{"date":"2026-03-25","ym":"2026-03","apt":"하나리아벨","umd":"춘의동","jibun":"142-5","dong":"","buildYear":2005,"excl":61.365,"floor":12,"price":280000000,"perPy":15083840,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5038044998158,"lng":126.783269729497,"near":"춘의역","nearM":329,"siteM":636},{"date":"2026-03-28","ym":"2026-03","apt":"꿈마을(동아)","umd":"중동","jibun":"1103","dong":"1011","buildYear":1993,"excl":59.55,"floor":4,"price":530000000,"perPy":29421765,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5000946040978,"lng":126.779707840715,"near":"신중동역","nearM":403,"siteM":545},{"date":"2026-03-29","ym":"2026-03","apt":"꿈마을(서안)","umd":"중동","jibun":"1102","dong":"1024","buildYear":1994,"excl":59.94,"floor":8,"price":539000000,"perPy":29726696,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4989891795314,"lng":126.780007491472,"near":"사업지","nearM":489,"siteM":489},{"date":"2026-04-08","ym":"2026-04","apt":"우남푸르미아","umd":"춘의동","jibun":"141-2","dong":"103","buildYear":2006,"excl":59.978,"floor":13,"price":485000000,"perPy":26731565,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5036233313681,"lng":126.784069720872,"near":"춘의역","nearM":258,"siteM":598},{"date":"2026-04-11","ym":"2026-04","apt":"연화마을(쌍용)","umd":"중동","jibun":"1101","dong":"1401","buildYear":1994,"excl":60,"floor":10,"price":440000000,"perPy":24242424,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4976942780217,"lng":126.780358463979,"near":"사업지","nearM":459,"siteM":459},{"date":"2026-04-11","ym":"2026-04","apt":"부천우림필유에듀파크","umd":"심곡동","jibun":"36-1","dong":"102동","buildYear":2019,"excl":59.7435,"floor":12,"price":492000000,"perPy":27223820,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4985327487676,"lng":126.783873472264,"near":"사업지","nearM":144,"siteM":144},{"date":"2026-04-22","ym":"2026-04","apt":"연화마을(쌍용)","umd":"중동","jibun":"1101","dong":"1401","buildYear":1994,"excl":60,"floor":8,"price":450000000,"perPy":24793388,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4976942780217,"lng":126.780358463979,"near":"사업지","nearM":459,"siteM":459},{"date":"2026-04-26","ym":"2026-04","apt":"우남푸르미아","umd":"춘의동","jibun":"141-2","dong":"103","buildYear":2006,"excl":59.978,"floor":19,"price":470000000,"perPy":25904815,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5036233313681,"lng":126.784069720872,"near":"춘의역","nearM":258,"siteM":598},{"date":"2026-05-23","ym":"2026-05","apt":"중동대림","umd":"중동","jibun":"3-207","dong":"104","buildYear":2000,"excl":59.79,"floor":2,"price":462000000,"perPy":25543949,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.506811181073,"lng":126.778046576783,"near":"신중동역","nearM":441,"siteM":1146},{"date":"2026-05-30","ym":"2026-05","apt":"우남푸르미아","umd":"춘의동","jibun":"141-2","dong":"103","buildYear":2006,"excl":59.978,"floor":7,"price":470000000,"perPy":25904815,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5036233313681,"lng":126.784069720872,"near":"춘의역","nearM":258,"siteM":598},{"date":"2026-06-04","ym":"2026-06","apt":"연화마을(쌍용)","umd":"중동","jibun":"1101","dong":"1401","buildYear":1994,"excl":60,"floor":13,"price":478000000,"perPy":26336088,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4976942780217,"lng":126.780358463979,"near":"사업지","nearM":459,"siteM":459},{"date":"2026-06-05","ym":"2026-06","apt":"연화마을(쌍용)","umd":"중동","jibun":"1101","dong":"1402","buildYear":1994,"excl":60,"floor":12,"price":515000000,"perPy":28374656,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4976942780217,"lng":126.780358463979,"near":"사업지","nearM":459,"siteM":459},{"date":"2026-06-06","ym":"2026-06","apt":"꿈마을(한진)","umd":"중동","jibun":"1104","dong":"1009","buildYear":1994,"excl":59.88,"floor":13,"price":479000000,"perPy":26444073,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5014152566305,"lng":126.779252273177,"near":"신중동역","nearM":269,"siteM":647},{"date":"2026-07-01","ym":"2026-07","apt":"대화","umd":"원미동","jibun":"58-1","dong":"101","buildYear":1999,"excl":55.008,"floor":10,"price":250000000,"perPy":15024111,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4964927289838,"lng":126.789937042031,"near":"사업지","nearM":444,"siteM":444},{"date":"2026-07-07","ym":"2026-07","apt":"꿈마을(삼환)","umd":"중동","jibun":"1104","dong":"","buildYear":1994,"excl":59.88,"floor":7,"price":503000000,"perPy":27769037,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5014152566305,"lng":126.779252273177,"near":"신중동역","nearM":269,"siteM":647},{"date":"2026-07-10","ym":"2026-07","apt":"꿈마을(서안)","umd":"중동","jibun":"1102","dong":"","buildYear":1994,"excl":59.94,"floor":4,"price":540000000,"perPy":29781848,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4989891795314,"lng":126.780007491472,"near":"사업지","nearM":489,"siteM":489},{"date":"2026-07-11","ym":"2026-07","apt":"꿈마을(건영)","umd":"중동","jibun":"1102","dong":"","buildYear":1994,"excl":59.91,"floor":10,"price":535000000,"perPy":29520865,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4989891795314,"lng":126.780007491472,"near":"사업지","nearM":489,"siteM":489},{"date":"2026-08-06","ym":"2026-08","apt":"우남푸르미아","umd":"춘의동","jibun":"141-2","dong":"","buildYear":2006,"excl":59.978,"floor":13,"price":470000000,"perPy":25904815,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5036233313681,"lng":126.784069720872,"near":"춘의역","nearM":258,"siteM":598},{"date":"2026-08-12","ym":"2026-08","apt":"꿈마을(동아)","umd":"중동","jibun":"1103","dong":"","buildYear":1993,"excl":59.55,"floor":1,"price":445000000,"perPy":24703180,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5000946040978,"lng":126.779707840715,"near":"신중동역","nearM":403,"siteM":545},{"date":"2026-08-28","ym":"2026-08","apt":"중동대림","umd":"중동","jibun":"3-207","dong":"105","buildYear":2000,"excl":59.79,"floor":14,"price":450000000,"perPy":24880470,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.506811181073,"lng":126.778046576783,"near":"신중동역","nearM":441,"siteM":1146},{"date":"2026-09-10","ym":"2026-09","apt":"중동대림","umd":"중동","jibun":"3-207","dong":"","buildYear":2000,"excl":59.79,"floor":12,"price":465000000,"perPy":25709819,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.506811181073,"lng":126.778046576783,"near":"신중동역","nearM":441,"siteM":1146},{"date":"2026-09-16","ym":"2026-09","apt":"꿈마을(한진)","umd":"중동","jibun":"1104","dong":"","buildYear":1994,"excl":59.88,"floor":1,"price":455000000,"perPy":25119109,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.5014152566305,"lng":126.779252273177,"near":"신중동역","nearM":269,"siteM":647},{"date":"2026-09-17","ym":"2026-09","apt":"연화마을(쌍용)","umd":"중동","jibun":"1101","dong":"","buildYear":1994,"excl":60,"floor":3,"price":520000000,"perPy":28650138,"gbn":"중개거래","canceled":false,"cancelDate":"","lat":37.4976942780217,"lng":126.780358463979,"near":"사업지","nearM":459,"siteM":459}],"presale":[{"name":"중동역 다채로움 더원","addr":"경기도 부천시 소사구 송내동 365-1번지 일원","notice":"2026-09-10","moveIn":"202808","builder":"주식회사 부성종합건설","type":"059.9935B","excl":59.9935,"supplyAr":81.5363,"units":3,"special":1,"price":610000000,"perPy":33612457,"rank1Req":0,"rank1Rate":"","siteM":2585},{"name":"중동역 다채로움 더원","addr":"경기도 부천시 소사구 송내동 365-1번지 일원","notice":"2026-09-10","moveIn":"202808","builder":"주식회사 부성종합건설","type":"060.7403 ","excl":60.7403,"supplyAr":81.7324,"units":3,"special":5,"price":612000000,"perPy":33308043,"rank1Req":0,"rank1Rate":"","siteM":2585},{"name":"두산위브더제니스 부천","addr":"경기도 부천시 소사구 소사본동 88-39번지 일대","notice":"2026-08-12","moveIn":"203202","builder":"두산건설 주식회사, 쌍용건설(주)","type":"059.9400A","excl":59.94,"supplyAr":87.4908,"units":145,"special":176,"price":875000000,"perPy":48257624,"rank1Req":233,"rank1Rate":"(△81)","siteM":1852},{"name":"두산위브더제니스 부천","addr":"경기도 부천시 소사구 소사본동 88-39번지 일대","notice":"2026-08-12","moveIn":"203202","builder":"두산건설 주식회사, 쌍용건설(주)","type":"059.9800B","excl":59.98,"supplyAr":86.2636,"units":77,"special":93,"price":864000000,"perPy":47619179,"rank1Req":65,"rank1Rate":"(△103)","siteM":1852},{"name":"역곡지구 하우스토리(부천역곡지구 A-2BL) 신혼희망타운(공공분양)(본청약)","addr":"경기도 부천시 부천역곡 공공주택지구 내 A-2블록","notice":"2026-06-26","moveIn":"202906","builder":"남광토건 주식회사","type":"055.9200A","excl":55.92,"supplyAr":80.623,"units":0,"special":159,"price":507240000,"perPy":29986167,"rank1Req":0,"rank1Rate":"","siteM":null},{"name":"역곡지구 하우스토리(부천역곡지구 A-2BL) 신혼희망타운(공공분양)(본청약)","addr":"경기도 부천시 부천역곡 공공주택지구 내 A-2블록","notice":"2026-06-26","moveIn":"202906","builder":"남광토건 주식회사","type":"055.9500B","excl":55.95,"supplyAr":80.6663,"units":0,"special":31,"price":507510000,"perPy":29986041,"rank1Req":0,"rank1Rate":"","siteM":null},{"name":"역곡지구 하우스토리(부천역곡지구 A-2BL) 신혼희망타운(공공분양)(본청약)","addr":"경기도 부천시 부천역곡 공공주택지구 내 A-2블록","notice":"2026-06-26","moveIn":"202906","builder":"남광토건 주식회사","type":"055.9500C","excl":55.95,"supplyAr":80.6663,"units":0,"special":122,"price":507510000,"perPy":29986041,"rank1Req":0,"rank1Rate":"","siteM":null},{"name":"역곡지구 하우스토리(부천역곡지구 A-2BL) 신혼희망타운(공공분양)(본청약)","addr":"경기도 부천시 부천역곡 공공주택지구 내 A-2블록","notice":"2026-06-26","moveIn":"202906","builder":"남광토건 주식회사","type":"055.9500D","excl":55.95,"supplyAr":80.6663,"units":0,"special":12,"price":507510000,"perPy":29986041,"rank1Req":0,"rank1Rate":"","siteM":null},{"name":"역곡지구 하우스토리(부천역곡지구 A-2BL) 신혼희망타운(공공분양)(본청약)","addr":"경기도 부천시 부천역곡 공공주택지구 내 A-2블록","notice":"2026-06-26","moveIn":"202906","builder":"남광토건 주식회사","type":"055.9500E","excl":55.95,"supplyAr":80.6663,"units":0,"special":35,"price":507510000,"perPy":29986041,"rank1Req":0,"rank1Rate":"","siteM":null},{"name":"역곡지구 하우스토리(부천역곡지구 A-2BL) 신혼희망타운(공공분양)(본청약)","addr":"경기도 부천시 부천역곡 공공주택지구 내 A-2블록","notice":"2026-06-26","moveIn":"202906","builder":"남광토건 주식회사","type":"055.9600F","excl":55.96,"supplyAr":80.6807,"units":0,"special":13,"price":507600000,"perPy":29985999,"rank1Req":0,"rank1Rate":"","siteM":null},{"name":"오정 해모로 스마트시티(조합원 취소분)","addr":"경기도 부천시 오정구 오정동 613번지 일원","notice":"2026-05-19","moveIn":"202707","builder":"(주)에이치제이중공업 건설부문","type":"059.9026 ","excl":59.9026,"supplyAr":84.5339,"units":16,"special":16,"price":572100000,"perPy":31571913,"rank1Req":12,"rank1Rate":"(△21)","siteM":2819},{"name":"엘리프 역곡","addr":"경기도 부천시 소사구 괴안동 106-1번지 일원","notice":"2026-05-14","moveIn":"202708","builder":"계룡건설산업 (주)","type":"059.9500 ","excl":59.95,"supplyAr":81.42,"units":8,"special":11,"price":672600000,"perPy":37088759,"rank1Req":34,"rank1Rate":"(△4)","siteM":2910},{"name":"중앙하이츠 원종역","addr":"경기도 부천시 오정구 원종동 276-2","notice":"2026-05-08","moveIn":"202803","builder":"중앙건설 주식회사","type":"059.6000E","excl":59.6,"supplyAr":77.702,"units":1,"special":1,"price":479000000,"perPy":26568307,"rank1Req":7,"rank1Rate":"1.00","siteM":3449},{"name":"중앙하이츠 원종역","addr":"경기도 부천시 오정구 원종동 276-2","notice":"2026-05-08","moveIn":"202803","builder":"중앙건설 주식회사","type":"060.2700E","excl":60.27,"supplyAr":77.965,"units":5,"special":8,"price":482400000,"perPy":26459445,"rank1Req":10,"rank1Rate":"(△4)","siteM":3449},{"name":"e편한세상 부천 어반스퀘어","addr":"경기도 부천시 원미구 소사동 48-21 일대(소사3구역 재개발정비사업)","notice":"2026-04-23","moveIn":"202910","builder":"디엘이앤씨 주식회사, 롯데건설 주식회사","type":"059.9000A","excl":59.9,"supplyAr":81.4763,"units":169,"special":205,"price":870800000,"perPy":48058058,"rank1Req":462,"rank1Rate":"1.22","siteM":1761},{"name":"e편한세상 부천 어반스퀘어","addr":"경기도 부천시 원미구 소사동 48-21 일대(소사3구역 재개발정비사업)","notice":"2026-04-23","moveIn":"202910","builder":"디엘이앤씨 주식회사, 롯데건설 주식회사","type":"059.7700B","excl":59.77,"supplyAr":82.1311,"units":47,"special":60,"price":856100000,"perPy":47349551,"rank1Req":155,"rank1Rate":"1.34","siteM":1761},{"name":"부천역 에피트 어바닉","addr":"경기도 부천시 원미구 원미동 150-1외 2필지","notice":"2026-03-06","moveIn":"202807","builder":"에이치엘디앤아이한라","type":"055.0641 ","excl":55.0641,"supplyAr":70.6016,"units":11,"special":11,"price":474950000,"perPy":28513726,"rank1Req":28,"rank1Rate":"(△1)","siteM":857},{"name":"쌍용 더 플래티넘 온수역","addr":"경기도 부천시 소사구 괴안동 201번지 일원","notice":"2026-02-13","moveIn":"202810","builder":"쌍용건설(주)","type":"059.9563A","excl":59.9563,"supplyAr":84.1575,"units":46,"special":50,"price":891500000,"perPy":49154258,"rank1Req":593,"rank1Rate":"3.98","siteM":3133},{"name":"쌍용 더 플래티넘 온수역","addr":"경기도 부천시 소사구 괴안동 201번지 일원","notice":"2026-02-13","moveIn":"202810","builder":"쌍용건설(주)","type":"059.8585B","excl":59.8585,"supplyAr":83.6074,"units":59,"special":71,"price":868300000,"perPy":47953310,"rank1Req":628,"rank1Rate":"3.00","siteM":3133},{"name":"여월 중앙하이츠 아르비채","addr":"경기도 부천시 오정구 여월동 8-9번지 외 4필지","notice":"2025-11-24","moveIn":"202610","builder":"씨에이이앤씨(주)","type":"059.9900 ","excl":59.99,"supplyAr":77.75,"units":8,"special":6,"price":510000000,"perPy":28103858,"rank1Req":9,"rank1Rate":"(△6)","siteM":2633},{"name":"엘리프 원종","addr":"경기도 부천시 오정구 원종동 298-1번지 일원","notice":"2025-11-14","moveIn":"202801","builder":"계룡건설산업(주)","type":"059.9800C","excl":59.98,"supplyAr":75.7387,"units":8,"special":12,"price":520300000,"perPy":28676225,"rank1Req":18,"rank1Rate":"(△1)","siteM":3872},{"name":"엘리프 원종","addr":"경기도 부천시 오정구 원종동 298-1번지 일원","notice":"2025-11-14","moveIn":"202801","builder":"계룡건설산업(주)","type":"059.9200C","excl":59.92,"supplyAr":74.8273,"units":5,"special":6,"price":504200000,"perPy":27816703,"rank1Req":9,"rank1Rate":"(△5)","siteM":3872},{"name":"엘리프 원종","addr":"경기도 부천시 오정구 원종동 298-1번지 일원","notice":"2025-11-14","moveIn":"202801","builder":"계룡건설산업(주)","type":"059.9600C","excl":59.96,"supplyAr":74.8849,"units":27,"special":25,"price":503000000,"perPy":27731987,"rank1Req":39,"rank1Rate":"(△12)","siteM":3872},{"name":"엠타워 디루체","addr":"경기도 부천시 소사구 심곡로10번길 68 ","notice":"2025-10-28","moveIn":"202512","builder":"일명종합건설 주식회사 ","type":"060.1600H","excl":60.16,"supplyAr":82.22,"units":4,"special":0,"price":620000000,"perPy":34068929,"rank1Req":5,"rank1Rate":"(△3)","siteM":2026},{"name":"엠타워 디루체","addr":"경기도 부천시 소사구 심곡로10번길 68 ","notice":"2025-10-28","moveIn":"202512","builder":"일명종합건설 주식회사 ","type":"060.8900J","excl":60.89,"supplyAr":83.41,"units":4,"special":0,"price":603000000,"perPy":32737534,"rank1Req":1,"rank1Rate":"(△4)","siteM":2026},{"name":"엠타워 디루체","addr":"경기도 부천시 소사구 심곡로10번길 68 ","notice":"2025-10-28","moveIn":"202512","builder":"일명종합건설 주식회사 ","type":"061.7100K","excl":61.71,"supplyAr":84.46,"units":4,"special":0,"price":636000000,"perPy":34070318,"rank1Req":0,"rank1Rate":"(△4)","siteM":2026}],"silv":[{"date":"2025-10-02","ym":"2025-10","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":6,"price":665500000,"perPy":36776260,"kind":"분양권","gbn":"중개거래","canceled":true,"siteM":2571},{"date":"2025-10-04","ym":"2025-10","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":13,"price":599000000,"perPy":33025322,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2025-10-15","ym":"2025-10","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":8,"price":667500000,"perPy":36886782,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2025-10-18","ym":"2025-10","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":17,"price":689800000,"perPy":38119105,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2025-10-18","ym":"2025-10","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":13,"price":630000000,"perPy":34725792,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2025-10-18","ym":"2025-10","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":15,"price":585540000,"perPy":32275143,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2025-10-20","ym":"2025-10","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":18,"price":678000000,"perPy":37467024,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2025-10-25","ym":"2025-10","apt":"역곡역 아테움 스위첸","sgg":"부천시 소사구","umd":"괴안동","jibun":"91-1","excl":59.8521,"floor":3,"price":480000000,"perPy":26511632,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2930},{"date":"2025-11-06","ym":"2025-11","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":3,"price":531400000,"perPy":29290930,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2025-11-11","ym":"2025-11","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":14,"price":687700000,"perPy":38003056,"kind":"분양권","gbn":"직거래","canceled":false,"siteM":2571},{"date":"2025-11-17","ym":"2025-11","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":11,"price":677500000,"perPy":37439393,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2025-11-18","ym":"2025-11","apt":"역곡역 아테움 스위첸","sgg":"부천시 소사구","umd":"괴안동","jibun":"91-1","excl":59.8521,"floor":17,"price":500000000,"perPy":27616284,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2930},{"date":"2025-11-24","ym":"2025-11","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":13,"price":640000000,"perPy":35276995,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2025-12-02","ym":"2025-12","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":6,"price":665500000,"perPy":36776260,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2025-12-04","ym":"2025-12","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":4,"price":532100000,"perPy":29329514,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2025-12-05","ym":"2025-12","apt":"역곡역 아테움 스위첸","sgg":"부천시 소사구","umd":"괴안동","jibun":"91-1","excl":59.8521,"floor":5,"price":418000000,"perPy":23087213,"kind":"입","gbn":"직거래","canceled":false,"siteM":2930},{"date":"2025-12-05","ym":"2025-12","apt":"역곡역 아테움 스위첸","sgg":"부천시 소사구","umd":"괴안동","jibun":"91-1","excl":59.8521,"floor":2,"price":470000000,"perPy":25959306,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2930},{"date":"2025-12-21","ym":"2025-12","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":20,"price":709600000,"perPy":39213274,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2026-01-21","ym":"2026-01","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":4,"price":665000000,"perPy":36748629,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2026-01-23","ym":"2026-01","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":9,"price":684100000,"perPy":37804116,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2026-01-28","ym":"2026-01","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":23,"price":691000000,"perPy":38185418,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2026-02-05","ym":"2026-02","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":9,"price":678500000,"perPy":37494654,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2026-02-10","ym":"2026-02","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":11,"price":690500000,"perPy":38157787,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2026-02-19","ym":"2026-02","apt":"고강역 신원아침도시 퍼스티지","sgg":"부천시 오정구","umd":"고강동","jibun":"307","excl":58.8463,"floor":10,"price":367780000,"perPy":20660630,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3875},{"date":"2026-02-22","ym":"2026-02","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":14,"price":635000000,"perPy":35010149,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-02-22","ym":"2026-02","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":14,"price":635000000,"perPy":35010149,"kind":"입","gbn":"중개거래","canceled":true,"siteM":2695},{"date":"2026-02-24","ym":"2026-02","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":32,"price":675000000,"perPy":37217189,"kind":"입","gbn":"직거래","canceled":false,"siteM":3133},{"date":"2026-02-25","ym":"2026-02","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":6,"price":575000000,"perPy":31694175,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-02-25","ym":"2026-02","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":6,"price":575000000,"perPy":31694175,"kind":"입","gbn":"중개거래","canceled":true,"siteM":2695},{"date":"2026-02-26","ym":"2026-02","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":7,"price":710000000,"perPy":39145207,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-03-02","ym":"2026-03","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":3,"price":642800000,"perPy":35440195,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-03-03","ym":"2026-03","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":7,"price":697730000,"perPy":38468711,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-03-07","ym":"2026-03","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":13,"price":701000000,"perPy":38650740,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-03-16","ym":"2026-03","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":1,"price":637000000,"perPy":35120418,"kind":"분양권","gbn":"직거래","canceled":false,"siteM":2695},{"date":"2026-03-27","ym":"2026-03","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":21,"price":797500000,"perPy":43971420,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-03-29","ym":"2026-03","apt":"역곡역 아테움 스위첸","sgg":"부천시 소사구","umd":"괴안동","jibun":"91-1","excl":59.8521,"floor":10,"price":490330000,"perPy":27082185,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2930},{"date":"2026-04-11","ym":"2026-04","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":17,"price":713500000,"perPy":39339947,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-04-12","ym":"2026-04","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":17,"price":610000000,"perPy":33631797,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-04-13","ym":"2026-04","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":27,"price":810000000,"perPy":44660627,"kind":"입","gbn":"직거래","canceled":false,"siteM":3133},{"date":"2026-04-16","ym":"2026-04","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":7,"price":671280000,"perPy":37010414,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-04-18","ym":"2026-04","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":12,"price":661650000,"perPy":36470349,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-05-01","ym":"2026-05","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":5,"price":640000000,"perPy":35276995,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-05-02","ym":"2026-05","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":21,"price":620000000,"perPy":34183138,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-05-16","ym":"2026-05","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":25,"price":756140000,"perPy":41690971,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-05-25","ym":"2026-05","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":17,"price":627000000,"perPy":34569077,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-05-27","ym":"2026-05","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":5,"price":703080000,"perPy":38763679,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-05-30","ym":"2026-05","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":12,"price":750500000,"perPy":41380001,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-06-08","ym":"2026-06","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":3,"price":621380000,"perPy":34259223,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-06-08","ym":"2026-06","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":3,"price":621380000,"perPy":34259223,"kind":"분양권","gbn":"중개거래","canceled":true,"siteM":2695},{"date":"2026-06-09","ym":"2026-06","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":12,"price":792730000,"perPy":43708418,"kind":"입","gbn":"중개거래","canceled":true,"siteM":3133},{"date":"2026-06-18","ym":"2026-06","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":23,"price":645000000,"perPy":35561490,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-06-20","ym":"2026-06","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":2,"price":630080000,"perPy":34738890,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-06-27","ym":"2026-06","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":9,"price":678480000,"perPy":37407380,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-06-27","ym":"2026-06","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":15,"price":680000000,"perPy":37491184,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-06-29","ym":"2026-06","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":16,"price":680000000,"perPy":37491184,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-01","ym":"2026-07","apt":"엘리프 역곡","sgg":"부천시 소사구","umd":"괴안동","jibun":"106-1","excl":59.95,"floor":13,"price":569060000,"perPy":31379317,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2984},{"date":"2026-07-04","ym":"2026-07","apt":"소사역 롯데캐슬 더 뉴엘","sgg":"부천시 소사구","umd":"소사본동","jibun":"가-134","excl":59.8212,"floor":7,"price":744800000,"perPy":41158465,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2571},{"date":"2026-07-04","ym":"2026-07","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":12,"price":754890000,"perPy":41622050,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-07-07","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":20,"price":675000000,"perPy":37206205,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-07","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":14,"price":672000000,"perPy":37050111,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-08","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":10,"price":685000000,"perPy":37766854,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-11","ym":"2026-07","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":22,"price":761500000,"perPy":41986503,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-07-11","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":4,"price":658830000,"perPy":36323995,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-11","ym":"2026-07","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":15,"price":765000000,"perPy":42179481,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-07-12","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":5,"price":675180000,"perPy":37225437,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-17","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":7,"price":678480000,"perPy":37407380,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-17","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":18,"price":695000000,"perPy":38318195,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-17","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":3,"price":650480000,"perPy":35863625,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-18","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":16,"price":700000000,"perPy":38584213,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-19","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":5,"price":695000000,"perPy":38308611,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-22","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":7,"price":714370000,"perPy":39386143,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-22","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":6,"price":705180000,"perPy":38879460,"kind":"분양권","gbn":"직거래","canceled":false,"siteM":2695},{"date":"2026-07-25","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":9,"price":708000000,"perPy":39034938,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-07-25","ym":"2026-07","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":12,"price":792730000,"perPy":43708418,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-07-27","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":9,"price":710730000,"perPy":39185454,"kind":"분양권","gbn":"직거래","canceled":false,"siteM":2695},{"date":"2026-07-31","ym":"2026-07","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":11,"price":700000000,"perPy":38584213,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-02","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":6,"price":673080000,"perPy":37109656,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-03","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":4,"price":680000000,"perPy":37481807,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-03","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":2,"price":650080000,"perPy":35841572,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-03","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":9,"price":698230000,"perPy":38496278,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-03","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":2,"price":613830000,"perPy":33842961,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-04","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":7,"price":704520000,"perPy":38843072,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-12","ym":"2026-08","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":8,"price":720000000,"perPy":39698335,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-08-15","ym":"2026-08","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":15,"price":788540000,"perPy":43477396,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-08-17","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":6,"price":675180000,"perPy":37225437,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-19","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":4,"price":624280000,"perPy":34419112,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-19","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":3,"price":627980000,"perPy":34623108,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-20","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":7,"price":684520000,"perPy":37740390,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-21","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":3,"price":673420000,"perPy":37128401,"kind":"분양권","gbn":"직거래","canceled":false,"siteM":2695},{"date":"2026-08-22","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":6,"price":664400000,"perPy":36631092,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-22","ym":"2026-08","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":24,"price":778500000,"perPy":42923825,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-08-24","ym":"2026-08","apt":"고강역 신원아침도시 퍼스티지","sgg":"부천시 오정구","umd":"고강동","jibun":"307","excl":58.8463,"floor":8,"price":455000000,"perPy":25560354,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3875},{"date":"2026-08-25","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":6,"price":692330000,"perPy":38170987,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-26","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":8,"price":675180000,"perPy":37225437,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-26","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":3,"price":663080000,"perPy":36558315,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-08-29","ym":"2026-08","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":2,"price":614080000,"perPy":33856744,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-09-01","ym":"2026-09","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":11,"price":789500000,"perPy":43530327,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-09-03","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":6,"price":668730000,"perPy":36869822,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-09-03","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":12,"price":683000000,"perPy":37656586,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-09-03","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":6,"price":668730000,"perPy":36869822,"kind":"분양권","gbn":"중개거래","canceled":true,"siteM":2695},{"date":"2026-09-04","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":2,"price":615980000,"perPy":33961499,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-09-04","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":2,"price":615980000,"perPy":33961499,"kind":"분양권","gbn":"중개거래","canceled":true,"siteM":2695},{"date":"2026-09-05","ym":"2026-09","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":17,"price":821500000,"perPy":45294698,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-09-12","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":7,"price":708000000,"perPy":39025175,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-09-13","ym":"2026-09","apt":"쌍용 더 플래티넘 온수역","sgg":"부천시 소사구","umd":"괴안동","jibun":"201","excl":59.9563,"floor":13,"price":779500000,"perPy":42978961,"kind":"입","gbn":"중개거래","canceled":false,"siteM":3133},{"date":"2026-09-13","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":16,"price":716000000,"perPy":39476011,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-09-14","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.974,"floor":2,"price":658000000,"perPy":36269160,"kind":"입","gbn":"중개거래","canceled":false,"siteM":2695},{"date":"2026-09-15","ym":"2026-09","apt":"송내역 푸르지오 센트비엔","sgg":"부천시 소사구","umd":"송내동","jibun":"339","excl":59.959,"floor":5,"price":669530000,"perPy":36913930,"kind":"분양권","gbn":"중개거래","canceled":false,"siteM":2695}],"sources":["국토교통부 아파트 매매 실거래가 자료","국토교통부 아파트 분양권전매 실거래가 자료","한국부동산원 청약홈 분양정보·청약접수 경쟁률","카카오 로컬 API(좌표)"]};
+
+const BLANK = (()=>{ const b=JSON.parse(JSON.stringify(SAMPLE));
+  b.meta.name="신규 LH 신축매입약정 사업"; b.site.address=""; b.site.zone=""; b.site.district=""; b.site.roads=""; b.site.transit=""; b.site.siteM2=0;
+  b.site.parcels=[{lot:"",jimok:"",m2:0,price:0,owner:"",status:""}];
+  Object.assign(b.bldg,{gfaM2:0,aboveM2:0,belowM2:0,bcr:"",far:"",floors:"",parking:"",existingPy:0});
+  b.units=[{type:"전용 59㎡",excl:59,count:0,price:0}];
+  b.land.unit=0; b.land.apprUnit=0; b.cost.buildUnit=0; b.cost.extra=0; b.cost.demoUnit=0;
+  for(const k of Object.keys(b.text)) b.text[k]=""; b.comps=[]; b.risks=[]; b.market=null; return b; })();
+
+/* ============================== 상태 ============================== */
+const KEY="lh-plan-app-v1";
+let S, UNIT="억원", TAB="summary";
+try{ const raw=localStorage.getItem(KEY); if(raw){ const o=JSON.parse(raw); S=o.S; UNIT=o.UNIT||UNIT; TAB=o.TAB||TAB; } }catch(e){}
+if(!S) S=JSON.parse(JSON.stringify(SAMPLE));
+function normalize(o){ if(o.market===undefined) o.market=null; if(Array.isArray(o.comps)) o.comps=o.comps.map(c=>c.cat!==undefined?c:{cat:"수동", name:c.name||"", year:c.year||"", dist:"", n:"", when:c.when||"", price:+c.price||0, perPy:0}); if(o.fin&&o.fin.autoEq===undefined) o.fin.autoEq=true; o.marketOpt=Object.assign({exDirect:true,exLow:true,lowMax:2,newY:5,semiY:10,exPublic:true},o.marketOpt||{}); return o; }
+normalize(S);
+if(S.meta.name===SAMPLE.meta.name && (!S.market || (S.market.version||1)<(SAMPLE.market.version||1))) S.market=SAMPLE.market;
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({S,UNIT,TAB})); }catch(e){} }
+
+/* ============================== 유틸 ============================== */
+const PY=0.3025;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DIV={"원":1,"천원":1e3,"백만원":1e6,"억원":1e8};
+function fm(v,dec){ if(v==null||isNaN(v)) return "-"; const d=dec??(UNIT==="억원"?1:0); const x=v/DIV[UNIT];
+  if(Math.abs(x)<0.5*Math.pow(10,-d)) return "-";
+  const s=Math.abs(x).toLocaleString("ko-KR",{minimumFractionDigits:d,maximumFractionDigits:d}); return x<0?"△"+s:s; }
+const won=v=>(v<0?"△":"")+Math.round(Math.abs(v)).toLocaleString("ko-KR");
+const n0=(v,d=0)=>isFinite(v)?Number(v).toLocaleString("ko-KR",{minimumFractionDigits:d,maximumFractionDigits:d}):"-";
+const pc=(v,d=1)=>isFinite(v)?(v<0?"△":"")+(Math.abs(v)*100).toFixed(d)+"%":"-";
+const eok=v=>(v<0?"△":"")+(Math.abs(v)/1e8).toLocaleString("ko-KR",{minimumFractionDigits:1,maximumFractionDigits:1})+"억원";
+function ym(start,m){ const [y,mo]=start.split("-").map(Number); const t=y*12+(mo-1)+m; return Math.floor(t/12)+"."+String(t%12+1).padStart(2,"0"); }
+function getP(o,p){ return p.split(".").reduce((a,k)=>a==null?a:a[k],o); }
+function setP(o,p,v){ const ks=p.split("."); const last=ks.pop(); const t=ks.reduce((a,k)=>a[k],o); t[last]=v; }
+function sCurve(n){ if(n<=0) return []; const w=[]; for(let i=0;i<n;i++){ const x=(i+.5)/n; w.push(Math.sin(Math.PI*x)**1.3+0.15); } const s=w.reduce((a,b)=>a+b,0); return w.map(v=>Math.round(v/s*1000)/1000); }
+function curveOf(S){ const c=S.lh.curve||[]; return c.length===S.sched.cons? c : sCurve(S.sched.cons); }
+
+/* ============================== 계산 엔진 ============================== */
+function sepTax(b){ if(b<=2e8) return b*0.002; if(b<=1e9) return b*0.003-200000; return b*0.004-1200000; }
+
+// 자기자본 = 토지매입비 × 비율 (백만원 단위 올림)
+// 특약보증 한도 부족 시: 부족액을 억원 단위로 올려 자기자본에 가산 → 보증수수료·이자 재계산 → 한도 충족까지 반복
+function compute(S, ov={}){
+  let R=computeCore(S, ov, null);
+  const eqBase=R.equity, short0=Math.max(R.needLoan-R.hugCap,0);
+  let add=0;
+  if(S.fin.autoEq!==false){
+    for(let i=0;i<20 && R.needLoan>R.hugCap;i++){ add+=Math.ceil((R.needLoan-R.hugCap)/1e8)*1e8; R=computeCore(S, ov, eqBase+add); }
+  }
+  return Object.assign(R,{eqBase, eqAdd:add, eqShort0:short0});
+}
+function computeCore(S, ov, eqOverride){
+  const L=S.land, C=S.cost, F={...S.fin,...(ov.fin||{})}, T=S.tax, SC=S.sched;
+  const rP=1+(ov.priceR||0), rB=1+(ov.buildR||0), rL=1+(ov.landR||0);
+  const eqRate=ov.eqRate??L.eqRate;
+  const landPy=(+S.site.siteM2||0)*PY, gfaPy=(+S.bldg.gfaM2||0)*PY;
+  const units=S.units.reduce((a,u)=>a+(+u.count||0),0);
+  const rev=S.units.reduce((a,u)=>a+(+u.count||0)*(+u.price||0)*rP,0);
+
+  // 일정(상대월)
+  const m={}; m.m1=0; m.m2=+SC.permit; m.m3=m.m2; m.m4=m.m3+(+SC.prep); m.m5=m.m4+(+SC.cons); m.m6=m.m5+(+SC.approval); m.m7=m.m6+(+SC.occupancy);
+  const cons=+SC.cons;
+
+  // ① 토지비
+  const I={};
+  I.landBuy=landPy*L.unit*rL; I.acq=I.landBuy*L.acqRate*(1-L.acqRelief); I.transfer=+L.transfer||0;
+  // ② 건축비
+  I.cons=gfaPy*C.buildUnit*rB; I.extra=+C.extra||0; I.design=gfaPy*C.designUnit; I.superv=gfaPy*C.superUnit;
+  I.demo=(+S.bldg.existingPy||0)*C.demoUnit; I.utility=+C.utility||0; I.art=+C.art||0;
+  const buildSub=I.cons+I.extra+I.design+I.superv+I.demo+I.utility+I.art;
+  // ③ 제세공과 (재산세: 과세기준일 6.1 보유분, 9월 납부)
+  I.preserve=buildSub*C.preserveRate; I.bond=+C.bond||0; I.levy=+C.levy||0;
+  const official=S.site.parcels.reduce((a,p)=>a+(+p.m2||0)*(+p.price||0),0);
+  const [sy,sm]=SC.start.split("-").map(Number);
+  const taxRows=[];
+  for(let y=sy; y<=sy+Math.ceil((m.m7+12)/12); y++){
+    const jun=(y-sy)*12+(6-sm);            // 6월의 상대월
+    if(jun<0 || jun>=m.m6) continue;        // 취득 이후 ~ LH 매매계약(⑥) 이전 과세기준일
+    const base=official*Math.pow(1+T.growth, y-T.baseYear)*T.fmv;
+    const prop=sepTax(base), city=base*T.cityRate, edu=prop*T.eduRate;
+    taxRows.push({y, base, prop, city, edu, total:prop+city+edu, comp:+T.compYearly||0, mSep:(y-sy)*12+(9-sm), mDec:(y-sy)*12+(12-sm)});
+  }
+  I.prop=taxRows.reduce((a,r)=>a+r.total,0); I.comp=taxRows.reduce((a,r)=>a+r.comp,0);
+  // ④ 판매비 — 분양보증수수료
+  const sgAmt=rev*C.sgRatio, sgL=sgAmt*C.sgLandShare, sgB=sgAmt-sgL;
+  I.salesGuar=(sgL*C.sgLandRate+sgB*C.sgBldgRate)*cons/12;
+  // ⑤ 부대비
+  I.trust=rev*C.trustRate; I.cont=I.cons*C.contRate;
+  const landSub=I.landBuy+I.acq+I.transfer, taxSub=I.preserve+I.bond+I.levy+I.prop+I.comp, saleSub=I.salesGuar, miscSub=I.trust+I.cont;
+  const subtotal=landSub+buildSub+taxSub+saleSub+miscSub;
+  // ⑥ HUG 특약보증수수료
+  const equity=eqOverride ?? Math.ceil(I.landBuy*eqRate/1e6)*1e6;
+  const guarBase=subtotal-equity;
+  I.hug=guarBase*C.hugRate*cons/12;
+
+  // LH 매입대금 지급 구조
+  const apprLand=landPy*L.apprUnit, support=apprLand*L.supportRate, cap=rev*S.lh.cap, conBase=cap-support;
+  const curve=curveOf(S), segs=[];
+  for(let k=0;k*3<cons;k++){ const s=k*3, e=Math.min(s+3,cons); const pct=curve.slice(s,e).reduce((a,b)=>a+b,0);
+    segs.push({no:k+1, from:s+1, to:e, pct, amt:conBase*pct, month:m.m4+e+(+S.lh.lag)}); }
+  const segSum=segs.reduce((a,s)=>a+s.amt,0);
+  const deposit=cap-support-segSum, balance=rev-cap;
+
+  // 월별 배치
+  let N=m.m7; segs.forEach(s=>N=Math.max(N,s.month)); taxRows.forEach(r=>N=Math.max(N,r.mSep, r.comp?r.mDec:0));
+  const rows={}, put=(k,mo,v)=>{ if(!v) return; rows[k]=rows[k]||new Array(N+1).fill(0); rows[k][Math.min(Math.max(mo,0),N)]+=v; };
+  put("r_support",m.m3,support); segs.forEach(s=>put("r_con",s.month,s.amt)); put("r_dep",m.m6,deposit); put("r_bal",m.m7,balance);
+  put("c_land",m.m1,I.landBuy*L.depositRate); put("c_land",m.m3,I.landBuy*(1-L.depositRate)+I.acq+I.transfer);
+  for(let i=1;i<=cons;i++) put("c_build",m.m4+i,(I.cons+I.extra)*(curve[i-1]||0));
+  put("c_design",m.m1,I.design*.1); put("c_design",m.m1+4,I.design*.4); put("c_design",m.m2,I.design*.5);
+  const nb=Math.max(Math.floor((cons-1)/2),0); put("c_super",m.m4,I.superv*.1);
+  for(let k=1;k<=nb;k++) put("c_super",m.m4+2*k,I.superv*.9/(nb+1)); put("c_super",m.m6,I.superv*.9/(nb+1));
+  put("c_demo",m.m4,I.demo); put("c_util",m.m5,I.utility+I.art);
+  put("c_cont",m.m2,I.cont*.5); put("c_cont",m.m6,I.cont*.5);
+  put("c_reg",m.m6,I.preserve+I.bond); put("c_guar",m.m4,I.salesGuar+I.hug); put("c_levy",m.m2,I.levy);
+  taxRows.forEach(r=>{ put("c_tax",r.mSep,r.total); put("c_tax",r.mDec,r.comp); });
+  put("c_trust",m.m2,I.trust); put("eq",m.m1,equity);
+  const z=()=>new Array(N+1).fill(0), g=k=>rows[k]||z();
+  const revM=z(), costM=z(), bal=z(), intM=z(), idle=z();
+  const revKeys=["r_support","r_con","r_dep","r_bal"], costKeys=["c_land","c_build","c_design","c_super","c_demo","c_util","c_cont","c_reg","c_guar","c_levy","c_tax","c_trust"];
+  let prev=0, cash=0, eqCash=0, peak=0, peakM=0;
+  for(let t=0;t<=N;t++){
+    revM[t]=revKeys.reduce((a,k)=>a+g(k)[t],0); costM[t]=costKeys.reduce((a,k)=>a+g(k)[t],0);
+    const net=costM[t]-revM[t]-g("eq")[t];
+    if(F.reuse){ let pos=prev-cash+net; bal[t]=Math.max(pos,0); cash=Math.max(-pos,0); }
+    else { // 자기자본은 이후 사업비에 먼저 사용, LH 수령 잉여현금만 유보(원 모델과 동일)
+      eqCash+=g("eq")[t]; let x=prev+costM[t]-revM[t];
+      const use=Math.min(eqCash,Math.max(x,0)); eqCash-=use; x-=use;
+      bal[t]=Math.max(x,0); cash+=Math.max(-x,0); }
+    idle[t]=cash+eqCash;
+    intM[t]=t===0?0:(prev+bal[t])/2*F.rate/12;   // 월0 이자 없음(원 엑셀 산식과 동일)
+    if(bal[t]>peak){ peak=bal[t]; peakM=t; } prev=bal[t];
+  }
+  I.interest=intM.reduce((a,b)=>a+b,0); I.fee=peak*F.feeRate; const quarters=Math.ceil((m.m7-m.m3)/3); I.agent=quarters*F.agentQ;
+  const finSub=I.interest+I.fee+I.agent;
+  const total=subtotal+I.hug+finSub, profit=rev-total;
+  const moic=equity>0?(equity+profit)/equity:NaN, irr=equity>0&&moic>0?Math.pow(moic,12/m.m7)-1:NaN;
+
+  // HUG 보증한도
+  const hugTotal=rev*F.hugBase, hugCap=hugTotal*F.hugLimit, needLoan=total-equity;
+  return { landPy, gfaPy, units, rev, m, I, taxRows, official, sgAmt, sgL, sgB, landSub, buildSub, taxSub, saleSub, miscSub, subtotal, equity, guarBase,
+    apprLand, support, cap, conBase, curve, segs, segSum, deposit, balance, N, rows, revM, costM, bal, intM, idle, peak, peakM, quarters, finSub, total, profit,
+    margin:rev?profit/rev:NaN, moic, irr, hugTotal, hugCap, needLoan, curveSum:curve.reduce((a,b)=>a+b,0) };
+}
+
+/* ============================== 입력 필드 ============================== */
+function fld(p,label,o={}){
+  const k=o.k||"num", v=getP(S,p); let shown;
+  if(k==="pct") shown=v==null?"":+(v*100).toFixed(4);
+  else if(k==="num") shown=v==null?"":Number(v).toLocaleString("ko-KR",{maximumFractionDigits:6});
+  else shown=v??"";
+  const id="f-"+p.replace(/\./g,"-");
+  const note=o.live?`<small data-live="${o.live}"></small>`:`<small>${esc(o.note||"")}</small>`;
+  return `<label class="fld ${o.wide?"wide":""}" for="${id}"><span>${esc(label)}</span><div class="in"><input id="${id}" data-p="${p}" data-k="${k}" value="${esc(shown)}" ${k==="num"||k==="pct"?'inputmode="decimal"':""}>${o.u?`<em>${esc(o.u)}</em>`:""}</div>${note}</label>`;
+}
+function area(p,label){ const id="f-"+p.replace(/\./g,"-"); return `<label class="fld wide" for="${id}"><span>${esc(label)}</span><textarea id="${id}" data-p="${p}" data-k="text">${esc(getP(S,p))}</textarea></label>`; }
+function parseIn(el){ const k=el.dataset.k, raw=el.value; if(k==="text"||k==="month") return raw;
+  const n=parseFloat(String(raw).replace(/,/g,"")); if(isNaN(n)) return 0; return k==="pct"?n/100:n; }
+
+function editTable(path,cols){
+  const arr=getP(S,path);
+  const head=cols.map(c=>`<th class="${c.num?"n":""}">${esc(c.h)}</th>`).join("")+"<th></th>";
+  const body=arr.map((r,i)=>"<tr>"+cols.map(c=>{ const v=r[c.f]; const shown=c.num?(c.pct?+(v*100).toFixed(3):Number(v||0).toLocaleString("ko-KR",{maximumFractionDigits:4})):(v??"");
+      return `<td><input id="t-${path}-${i}-${c.f}" aria-label="${esc(c.h)} ${i+1}행" class="${c.num?"r":""}" data-p="${path}.${i}.${c.f}" data-k="${c.num?(c.pct?"pct":"num"):"text"}" value="${esc(shown)}" style="${c.w?"min-width:"+c.w+"px":""}"></td>`; }).join("")
+      +`<td><button class="x" type="button" data-del="${path}" data-i="${i}" aria-label="${i+1}행 삭제">✕</button></td></tr>`).join("");
+  return `<div class="tw"><table class="edit"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>
+    <div class="row-actions"><button class="btn" type="button" data-add="${path}">+ 행 추가</button></div>`;
+}
+const NEWROW={"site.parcels":{lot:"",jimok:"",m2:0,price:0,owner:"",status:""},"units":{type:"",excl:0,count:0,price:0},"comps":{cat:"실거래",name:"",year:"",dist:"",n:"",when:"",price:0,perPy:0},"risks":{risk:"",level:"중",plan:""}};
+
+/* ============================== 탭: 입력 ============================== */
+const TABS={};
+TABS.overview=()=>`
+  <h2>사업개요·입지</h2><p class="lead">사업계획서 1~2장에 들어갈 기본 정보입니다. <span class="legend-in"><i></i>노란 칸은 입력값</span></p>
+  <div class="card"><h3>사업 기본정보</h3><div class="grid">
+    ${fld("meta.name","사업명",{k:"text",wide:true})}
+    ${fld("meta.developer","시행사",{k:"text"})}${fld("meta.trustee","신탁 구조",{k:"text"})}${fld("meta.contractor","시공사",{k:"text"})}
+    ${fld("meta.lhOffice","LH 공고",{k:"text"})}${fld("meta.date","작성일",{k:"text"})}
+  </div></div>
+  <div class="card"><h3>대상지</h3><div class="grid">
+    ${fld("site.address","소재지",{k:"text",wide:true})}
+    ${fld("site.zone","용도지역",{k:"text"})}${fld("site.district","용도지구",{k:"text"})}${fld("site.roads","접도",{k:"text"})}
+    ${fld("site.transit","교통",{k:"text",wide:true})}
+  </div></div>
+  <div class="card"><h3>필지 현황 <small>공시지가는 재산세 산정에 쓰입니다 (원/㎡)</small></h3>
+    <div class="row-actions" style="margin:0 0 10px"><label class="btn pri" for="landFile" style="cursor:pointer">land.json 불러오기 (토지·건물)</label><input type="file" id="landFile" accept=".json,application/json" hidden>
+      <button class="btn" type="button" id="bLandPaste">붙여넣기로 가져오기</button>
+      <span class="muted" style="font-size:12px;align-self:center">지번 조회: <code>node land.mjs "경기도 … 212-3" "… 212-2"</code> (VWorld·건축물대장)</span></div>
+    <div id="landOut">${LAND.html}</div>
+    ${editTable("site.parcels",[{h:"지번",f:"lot",w:80},{h:"지목",f:"jimok",w:90},{h:"면적(㎡)",f:"m2",num:1},{h:"개별공시지가(원/㎡)",f:"price",num:1,w:110},{h:"소유",f:"owner",w:100},{h:"현황",f:"status",w:140}])}
+  </div>
+  <div class="card"><h3>서술 항목</h3><div class="grid">
+    ${area("text.overview","사업 개요 (요약)")}${area("text.location","입지 분석")}${area("text.development","주변 개발호재")}${area("text.market","시장 현황")}
+  </div></div>
+  <div class="card"><h3>인근 시세 사례 <small>시장현황(실거래·분양권·분양) 요약 · 가격 억원, 전용평당 만원 · 직접 수정 가능</small></h3>
+    ${editTable("comps",[{h:"구분",f:"cat",w:60},{h:"단지명",f:"name",w:140},{h:"준공·입주",f:"year",w:80},{h:"사업지 거리",f:"dist",w:70},{h:"건수",f:"n",w:40},{h:"기준시점",f:"when",w:70},{h:"중위가(억원)",f:"price",num:1},{h:"전용평당(만원)",f:"perPy",num:1}])}
+    ${S.market?`<div class="row-actions"><button class="btn" type="button" id="bCompsAuto">시장현황 요약으로 다시 채우기</button></div>`:`<p class="muted" style="font-size:12.5px;margin:8px 0 0">[시장현황] 탭에서 market.json을 불러오면 자동으로 채워집니다.</p>`}
+  </div>
+  <div class="card"><h3>리스크 및 대응</h3>
+    ${editTable("risks",[{h:"리스크",f:"risk",w:180},{h:"수준(상/중/저)",f:"level",w:60},{h:"대응방안",f:"plan",w:320}])}
+  </div>`;
+
+TABS.plan=()=>`
+  <h2>건축개요·세대</h2><p class="lead">면적은 ㎡로 입력하면 평(×0.3025)으로 환산됩니다. 매출 = Σ(세대수 × 호당 매입예정가).</p>
+  <div class="card"><h3>건축개요 PDF 자동 입력 <small>설계개요·건축개요 PDF를 올리면 면적·규모·세대구성을 읽어 확인 후 채웁니다</small></h3>
+    <div class="row-actions" style="margin-top:0"><label class="btn pri" for="pdfFile" style="cursor:pointer">PDF 선택</label><input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden>
+      <button class="btn" type="button" id="bPdfStop" ${PDF.ctl?"":"hidden"}>중지</button></div>
+    <div id="pdfOut" style="margin-top:10px">${PDF.html}</div>
+  </div>
+  <div class="card"><h3>면적</h3><div class="grid">
+    ${fld("site.siteM2","대지면적",{u:"㎡",live:"sitePy"})}
+    ${fld("bldg.gfaM2","연면적 (지상+지하)",{u:"㎡",live:"gfaPy"})}
+    ${fld("bldg.aboveM2","지상 연면적",{u:"㎡",live:"far"})}
+    ${fld("bldg.belowM2","지하 연면적",{u:"㎡"})}
+    ${fld("bldg.existingPy","기존 건물 연면적 (철거)",{u:"평"})}
+    ${fld("bldg.bcr","건폐율",{k:"text"})}${fld("bldg.far","용적률 (법정/완화)",{k:"text"})}
+    ${fld("bldg.floors","규모 (층수·동수)",{k:"text"})}${fld("bldg.parking","주차",{k:"text"})}
+  </div></div>
+  <div class="card"><h3>세대 구성 및 LH 매입예정가 <small>호당가는 제1차 감정평가 기준 매매예정금액 (원)</small></h3>
+    ${editTable("units",[{h:"타입",f:"type",w:120},{h:"전용(㎡)",f:"excl",num:1},{h:"세대수",f:"count",num:1},{h:"호당 매입예정가(원)",f:"price",num:1,w:140}])}
+    <p class="muted" data-live="unitsum" style="margin:10px 0 0;font-size:12.5px"></p>
+  </div>`;
+
+TABS.land=()=>`
+  <h2>토지·LH 매입조건</h2><p class="lead">토지확보지원금은 토지분 감정가 × 지원비율(기본 60%, 조기약정 인센티브 시 최대 80%)로 약정체결 시 수령합니다.</p>
+  <div class="card"><h3>토지 매입</h3><div class="grid">
+    ${fld("land.unit","토지 매입단가",{u:"원/평",live:"landBuy"})}
+    ${fld("land.depositRate","계약금 비율",{k:"pct",u:"%",note:"토지매매계약 시 지급, 잔금은 LH 약정체결 시"})}
+    ${fld("land.acqRate","취득세율 (농특·교육세 포함)",{k:"pct",u:"%"})}
+    ${fld("land.acqRelief","취득세 감면율",{k:"pct",u:"%",note:"관리형토지신탁 감면 가정"})}
+    ${fld("land.transfer","이전비용 (자문수수료 등)",{u:"원"})}
+    ${fld("land.eqRate","자기자본 비율 (토지매입비 대비)",{k:"pct",u:"%",live:"equity"})}
+  </div></div>
+  <div class="card"><h3>LH 매입대금 조건</h3><div class="grid">
+    ${fld("land.apprUnit","토지 감정가 단가 (1차)",{u:"원/평",live:"appr"})}
+    ${fld("land.supportRate","토지확보지원금 비율",{k:"pct",u:"%",live:"support"})}
+    ${fld("lh.cap","준공 전 누적 지급한도",{k:"pct",u:"%",note:"매매예정금액 대비 (관리형토지신탁 90%)"})}
+    ${fld("lh.lag","공사대금 지급시차",{u:"개월",note:"3개월 구간 종료 후 감리확인·LH 검토"})}
+  </div></div>
+  <div class="card"><h3>월별 공정률 (착공 후) <small>합계 100% — 3개월 단위 LH 공사대금 산정 기준</small></h3>
+    <div data-live="curvewarn"></div>
+    <div class="tw"><table class="edit"><thead><tr><th>착공 후 월</th>${S.lh.curve.map((_,i)=>`<th class="n">${i+1}</th>`).join("")}<th class="n">합계</th></tr></thead>
+    <tbody><tr><td>공정률(%)</td>${S.lh.curve.map((v,i)=>`<td><input id="cv-${i}" aria-label="${i+1}개월차 공정률" class="r" style="min-width:52px" data-p="lh.curve.${i}" data-k="pct" value="${+(v*100).toFixed(2)}"></td>`).join("")}<td class="n" data-live="curvesum"></td></tr></tbody></table></div>
+    <div class="row-actions"><button class="btn" type="button" id="bCurve">공사기간에 맞춰 표준 S-곡선 생성</button></div>
+  </div>`;
+
+TABS.cost=()=>`
+  <h2>사업비 가정</h2><p class="lead">건축비는 연면적(평) 기준 단가, 판매·부대비는 매출 또는 공사비 연동 요율로 산정합니다.</p>
+  <div class="card"><h3>건축비</h3><div class="grid">
+    ${fld("cost.buildUnit","건축단가 (연면적)",{u:"원/평",live:"consAmt"})}
+    ${fld("cost.extra","추가공사비 (정액)",{u:"원"})}
+    ${fld("cost.designUnit","설계비 단가",{u:"원/평"})}${fld("cost.superUnit","감리비 단가",{u:"원/평"})}
+    ${fld("cost.demoUnit","철거비 단가 (기존 건물)",{u:"원/평"})}
+    ${fld("cost.utility","인입비 등",{u:"원"})}${fld("cost.art","예술장식품비",{u:"원",note:"지상연면적 10,000㎡ 이상 시 대상"})}
+  </div></div>
+  <div class="card"><h3>제세공과·부대비</h3><div class="grid">
+    ${fld("cost.preserveRate","보존등기비율 (건축비 소계 대비)",{k:"pct",u:"%"})}
+    ${fld("cost.bond","국민주택채권 할인",{u:"원"})}${fld("cost.levy","각종 부담금",{u:"원",note:"과밀·광역교통·학교용지 등"})}
+    ${fld("cost.trustRate","신탁보수율 (매출 대비)",{k:"pct",u:"%"})}
+    ${fld("cost.contRate","예비비율 (공사비 대비)",{k:"pct",u:"%"})}
+  </div></div>
+  <div class="card"><h3>보증수수료</h3><div class="grid">
+    ${fld("cost.sgRatio","분양보증 보증금액 비율",{k:"pct",u:"%"})}
+    ${fld("cost.sgLandShare","대지분 배분비율",{k:"pct",u:"%"})}
+    ${fld("cost.sgLandRate","대지비 요율 (연)",{k:"pct",u:"%"})}
+    ${fld("cost.sgBldgRate","건축비 요율 (연)",{k:"pct",u:"%",note:"시공사 신용등급·사업장 등급별"})}
+    ${fld("cost.hugRate","HUG 특약보증 요율 (연)",{k:"pct",u:"%",note:"보증대상 = 소계 − 자기자본"})}
+  </div></div>
+  <div class="card"><h3>재산세 (토지분, 별도합산) <small>과세기준일 6.1 보유분 · 9월 납부</small></h3><div class="grid">
+    ${fld("tax.baseYear","공시지가 기준연도",{u:"년"})}${fld("tax.growth","공시지가 연 상승률",{k:"pct",u:"%"})}
+    ${fld("tax.fmv","공정시장가액비율",{k:"pct",u:"%"})}${fld("tax.cityRate","도시지역분 세율",{k:"pct",u:"%"})}
+    ${fld("tax.eduRate","지방교육세율 (재산세 대비)",{k:"pct",u:"%"})}${fld("tax.compYearly","종합부동산세 (연, 직접입력)",{u:"원",note:"12월 납부"})}
+  </div><div data-live="taxtable" style="margin-top:12px"></div></div>`;
+
+TABS.fin=()=>`
+  <h2>일정·금융</h2><p class="lead">모든 마일스톤은 토지매매계약월(월0)과 기간 입력값에서 자동 산출됩니다.</p>
+  <div class="card"><h3>사업 일정</h3><div class="grid">
+    ${fld("sched.start","토지매매계약 (YYYY-MM)",{k:"month"})}
+    ${fld("sched.permit","인허가 소요기간",{u:"개월",note:"잔금·LH 약정체결 = 인허가 완료월"})}
+    ${fld("sched.prep","착공 준비기간",{u:"개월"})}
+    ${fld("sched.cons","공사기간",{u:"개월",note:"변경 시 공정률 곡선 재생성 필요"})}
+    ${fld("sched.approval","사용승인·보존등기",{u:"개월"})}
+    ${fld("sched.occupancy","입주지원(5단계 점검)",{u:"개월"})}
+  </div><div data-live="gantt" style="margin-top:16px"></div></div>
+  <div class="card"><h3>대출 조건 (HUG 도심주택 특약보증부)</h3><div class="grid">
+    ${fld("fin.rate","대출금리 (연)",{k:"pct",u:"%"})}
+    ${fld("fin.feeRate","취급수수료 (최대잔액 대비)",{k:"pct",u:"%"})}
+    ${fld("fin.agentQ","대리은행수수료 (분기)",{u:"원"})}
+    ${fld("fin.hugBase","HUG 산정 총사업비 비율 (매입가 대비)",{k:"pct",u:"%"})}
+    ${fld("fin.hugLimit","특약보증 한도 (총사업비 대비)",{k:"pct",u:"%",note:"수도권 90%, 기타 80%"})}
+  </div>
+  <label class="fld" style="flex-direction:row;align-items:center;gap:8px;margin-top:12px" for="f-fin-autoeq">
+    <input type="checkbox" id="f-fin-autoeq" data-p="fin.autoEq" data-k="bool" ${S.fin.autoEq!==false?"checked":""}>
+    <span style="font-size:13px;color:var(--ink)">특약보증 한도 부족 시 부족액만큼 자기자본 증액 <span class="muted">(억원 단위 올림)</span></span>
+  </label>
+  <label class="fld" style="flex-direction:row;align-items:center;gap:8px;margin-top:8px" for="f-fin-reuse">
+    <input type="checkbox" id="f-fin-reuse" data-p="fin.reuse" data-k="bool" ${S.fin.reuse?"checked":""}>
+    <span style="font-size:13px;color:var(--ink)">LH 수령 잉여현금을 이후 사업비에 재투입 <span class="muted">(끄면 원 엑셀 모델과 동일: 잉여현금 유보, 보수적)</span></span>
+  </label></div>`;
+
+/* ============================== 탭: 산출 ============================== */
+function costRows(R){
+  const I=R.I, py=R.gfaPy;
+  const L=[
+    ["① 토지비","토지매입비",I.landBuy,`대지 ${n0(R.landPy,1)}평 × ${n0(S.land.unit)}원`],
+    ["","취득세",I.acq,`${pc(S.land.acqRate,2)} × (1−감면 ${pc(S.land.acqRelief,0)})`],
+    ["","이전비용",I.transfer,""],
+    ["sub","① 토지비 소계",R.landSub],
+    ["② 건축비","공사비",I.cons,`연면적 ${n0(py,1)}평 × ${n0(S.cost.buildUnit)}원`],
+    ["","추가공사비",I.extra,"정액"],["","설계비",I.design,`연면적 × ${n0(S.cost.designUnit)}원`],["","감리비",I.superv,`연면적 × ${n0(S.cost.superUnit)}원`],
+    ["","철거비",I.demo,`기존 ${n0(S.bldg.existingPy,1)}평 × ${n0(S.cost.demoUnit)}원`],["","인입비 등",I.utility,""],["","예술장식품비",I.art,""],
+    ["sub","② 건축비 소계",R.buildSub],
+    ["③ 제세공과","보존등기비",I.preserve,`건축비 소계 × ${pc(S.cost.preserveRate,2)}`],["","국민주택채권 할인",I.bond,""],["","각종 부담금",I.levy,""],
+    ["","재산세",I.prop,`${R.taxRows.map(r=>r.y).join("·")}년 과세분 (별도합산)`],["","종합부동산세",I.comp,""],
+    ["sub","③ 제세공과 소계",R.taxSub],
+    ["④ 판매비","분양보증수수료",I.salesGuar,`보증금액 ${fm(R.sgAmt)} × 요율 × ${S.sched.cons}/12`],
+    ["sub","④ 판매비 소계",R.saleSub],
+    ["⑤ 부대비","신탁보수",I.trust,`매출 × ${pc(S.cost.trustRate,2)}`],["","예비비",I.cont,`공사비 × ${pc(S.cost.contRate,1)}`],
+    ["sub","⑤ 부대비 소계",R.miscSub],
+    ["sub","소계 (①~⑤)",R.subtotal],
+    ["⑥ 보증료","HUG 특약보증수수료",I.hug,`(소계 − 자기자본) × ${pc(S.cost.hugRate,2)} × ${S.sched.cons}/12`],
+    ["⑦ 금융비","대출이자",I.interest,`연 ${pc(S.fin.rate,2)}, 월평균잔액 기준`],["","취급수수료",I.fee,`최대잔액 × ${pc(S.fin.feeRate,2)}`],["","대리은행수수료",I.agent,`${R.quarters}분기 × ${n0(S.fin.agentQ/1e4)}만원`],
+    ["sub","⑦ 금융비 소계",R.finSub],
+    ["tot","총사업비",R.total]
+  ];
+  return L;
+}
+TABS.summary=()=>{ const R=compute(S);
+  const rows=costRows(R).map(([g,l,v,note])=>{
+    if(g==="sub"||g==="tot") return `<tr class="${g}"><td colspan="2">${l}</td><td class="n">${fm(v)}</td><td class="n">${pc(v/R.total)}</td><td class="n">${n0(v/R.gfaPy/1e4)}</td><td></td></tr>`;
+    return `<tr><td>${g}</td><td>${l}</td><td class="n">${fm(v)}</td><td class="n">${pc(v/R.total)}</td><td class="n">${n0(v/R.gfaPy/1e4)}</td><td class="note">${esc(note||"")}</td></tr>`; }).join("");
+  return `<h2>사업수지표</h2><p class="lead">단위 ${UNIT} · 부가세 별도 · 평당은 연면적 기준 만원/평</p>
+  ${warnings(R)}
+  <div class="card"><h3>매출</h3><div class="tw"><table><thead><tr><th>타입</th><th class="n">세대수</th><th class="n">호당 매입예정가(원)</th><th class="n">전용평당(만원)</th><th class="n">금액</th></tr></thead><tbody>
+    ${S.units.map(u=>`<tr><td>${esc(u.type)}</td><td class="n">${n0(u.count)}</td><td class="n">${n0(u.price)}</td><td class="n">${n0(u.price/(u.excl*PY)/1e4)}</td><td class="n">${fm(u.count*u.price)}</td></tr>`).join("")}
+    <tr class="tot"><td>매출 합계 (LH 매매예정금액)</td><td class="n">${n0(R.units)}</td><td></td><td></td><td class="n">${fm(R.rev)}</td></tr></tbody></table></div></div>
+  <div class="card"><h3>총사업비</h3><div class="tw"><table><thead><tr><th>구분</th><th>항목</th><th class="n">금액</th><th class="n">비중</th><th class="n">평당</th><th>산출근거</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="row-actions"><button class="btn" type="button" id="bTsv">엑셀 붙여넣기용 복사 (TSV, 원 단위)</button></div></div>
+  <div class="card"><h3>손익</h3><div class="tw"><table><tbody>
+    <tr><td>매출</td><td class="n">${fm(R.rev)}</td></tr><tr><td>총사업비</td><td class="n">${fm(R.total)}</td></tr>
+    <tr class="tot"><td>세전 사업손익</td><td class="n">${fm(R.profit)}</td></tr>
+    <tr><td>매출 대비 손익률</td><td class="n">${pc(R.margin)}</td></tr>
+    <tr><td>호당 사업비 / 호당 손익</td><td class="n">${won(R.total/R.units)}원 / ${won(R.profit/R.units)}원</td></tr>
+  </tbody></table></div></div>`; };
+
+function warnings(R){ const w=[];
+  if(Math.abs(R.curveSum-1)>0.0005) w.push(`공정률 합계가 ${pc(R.curveSum,1)}입니다. 100%가 아니면 차액이 ⑥ 계약금으로 정산됩니다.`);
+  if(S.lh.curve.length!==+S.sched.cons) w.push(`공정률 입력(${S.lh.curve.length}개월)이 공사기간(${S.sched.cons}개월)과 달라 표준 S-곡선을 임시 적용했습니다. [토지·LH 매입조건]에서 곡선을 생성하거나 입력하세요.`);
+  if(R.eqAdd) w.push(`특약보증 한도 부족(${fm(R.eqShort0)}${UNIT})으로 자기자본을 ${eok(R.eqAdd)} 증액해 보정했습니다 (${eok(R.eqBase)} → ${eok(R.equity)}).`);
+  if(R.needLoan>R.hugCap) w.push(`보증대상 소요액(총사업비−자기자본 ${fm(R.needLoan)}${UNIT})이 특약보증 한도(${fm(R.hugCap)}${UNIT})를 ${fm(R.needLoan-R.hugCap)}${UNIT} 초과합니다.`);
+  if(R.profit<0) w.push("세전 사업손익이 적자입니다.");
+  return w.map(t=>`<div class="flag"><b>확인</b><span>${t}</span></div>`).join(""); }
+
+TABS.lh=()=>{ const R=compute(S), m=R.m, st=S.sched.start;
+  return `<h2>LH 매입대금 지급 스케줄</h2><p class="lead">관리형토지신탁 방식 — 준공 전 누적 ${pc(S.lh.cap,0)}까지(토지확보지원금 + 착공 후 3개월 단위 실제 공정률 연동 공사대금), 잔금은 5단계 약정이행점검 후 지급. 단위 ${UNIT}.</p>
+  ${warnings(R)}
+  <div class="card"><h3>지급 구조</h3><div class="tw"><table><thead><tr><th>단계</th><th>산출</th><th class="n">금액</th><th class="n">비중</th><th>수령 시점</th></tr></thead><tbody>
+    <tr><td>매매예정금액</td><td>세대수 × 호당 매입예정가</td><td class="n">${fm(R.rev)}</td><td class="n">100.0%</td><td class="muted">1차 감정평가 기준 잠정</td></tr>
+    <tr><td>토지 감정가 (1차)</td><td>대지 ${n0(R.landPy,1)}평 × ${n0(S.land.apprUnit)}원</td><td class="n">${fm(R.apprLand)}</td><td></td><td></td></tr>
+    <tr class="grp"><td>1단계 · 토지확보지원금</td><td>토지 감정가 × ${pc(S.land.supportRate,0)}</td><td class="n">${fm(R.support)}</td><td class="n">${pc(R.support/R.rev)}</td><td>월${m.m3} (${ym(st,m.m3)}) 약정체결</td></tr>
+    <tr class="grp"><td>2단계 · 착공 후 공사대금</td><td>(매매예정 × ${pc(S.lh.cap,0)}) − 토지확보지원금</td><td class="n">${fm(R.conBase)}</td><td class="n">${pc(R.conBase/R.rev)}</td><td>${R.segs.length}회 분할</td></tr>
+    <tr class="grp"><td>3단계 · 계약금 (정산)</td><td>누적 ${pc(S.lh.cap,0)} − (1단계+2단계)</td><td class="n">${fm(R.deposit)}</td><td class="n">${pc(R.deposit/R.rev)}</td><td>월${m.m6} (${ym(st,m.m6)}) 사용승인·소유권이전</td></tr>
+    <tr class="grp"><td>4단계 · 잔금</td><td>매매금액 × ${pc(1-S.lh.cap,0)}</td><td class="n">${fm(R.balance)}</td><td class="n">${pc(R.balance/R.rev)}</td><td>월${m.m7} (${ym(st,m.m7)}) 입주지원 완료</td></tr>
+    <tr class="tot"><td>합계</td><td></td><td class="n">${fm(R.support+R.segSum+R.deposit+R.balance)}</td><td class="n">${pc((R.support+R.segSum+R.deposit+R.balance)/R.rev)}</td><td></td></tr>
+  </tbody></table></div></div>
+  <div class="card"><h3>착공 후 공사대금 분할 <small>착공 월${m.m4} (${ym(st,m.m4)}) 기준</small></h3><div class="tw"><table><thead><tr><th>차수</th><th>구간 (착공 후 월)</th><th class="n">구간 공정률</th><th class="n">누적 공정률</th><th class="n">금액</th><th>수령월</th></tr></thead><tbody>
+    ${(()=>{let c=0;return R.segs.map(s=>{c+=s.pct;return `<tr><td>${s.no}차</td><td>${s.from}~${s.to}개월</td><td class="n">${pc(s.pct)}</td><td class="n">${pc(c)}</td><td class="n">${fm(s.amt)}</td><td>월${s.month} (${ym(st,s.month)})</td></tr>`}).join("")})()}
+    <tr class="tot"><td colspan="4">합계</td><td class="n">${fm(R.segSum)}</td><td></td></tr></tbody></table></div>
+    <p class="muted" style="font-size:12px;margin:8px 0 0">실제 지급은 예정공정률이 아닌 감리자 확인 실제 공정률 기준. 수령월 = 착공월 + 구간 종료월 + 지급시차 ${S.lh.lag}개월.</p></div>`; };
+
+function cfChart(R){
+  const N=R.N, W=Math.max(700,(N+1)*26+80), H=260, pl=56, pr=16, pt=14, pb=28, ih=H-pt-pb;
+  const maxBar=Math.max(...R.revM,...R.costM,...R.bal,1), sc=v=>v/maxBar*ih;
+  const bw=(W-pl-pr)/(N+1), x=t=>pl+t*bw;
+  const ticks=[0,.25,.5,.75,1].map(f=>f*maxBar);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="월별 매출·사업비·대출잔액">`;
+  ticks.forEach(v=>{ const y=pt+ih-sc(v); s+=`<line class="grid-l" x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}"/><text x="${pl-6}" y="${y+4}" text-anchor="end">${(v/1e8).toFixed(0)}억</text>`; });
+  for(let t=0;t<=N;t++){ const cx=x(t);
+    if(R.revM[t]) s+=`<rect x="${cx+bw*.12}" y="${pt+ih-sc(R.revM[t])}" width="${bw*.36}" height="${sc(R.revM[t])}" fill="var(--bar-in)"><title>월${t} 매출 ${eok(R.revM[t])}</title></rect>`;
+    if(R.costM[t]) s+=`<rect x="${cx+bw*.5}" y="${pt+ih-sc(R.costM[t])}" width="${bw*.36}" height="${sc(R.costM[t])}" fill="var(--bar-out)"><title>월${t} 사업비 ${eok(R.costM[t])}</title></rect>`;
+    if(t%3===0) s+=`<text x="${cx+bw/2}" y="${H-8}" text-anchor="middle">${t}</text>`; }
+  const pts=R.bal.map((v,t)=>`${x(t)+bw/2},${pt+ih-sc(v)}`).join(" ");
+  s+=`<polyline points="${pts}" fill="none" stroke="var(--loan)" stroke-width="2"/>`;
+  const px=x(R.peakM)+bw/2, py=pt+ih-sc(R.peak);
+  s+=`<circle cx="${px}" cy="${py}" r="4" fill="var(--loan)"/><text x="${px+6}" y="${py-6}" style="fill:var(--loan);font-weight:600">최대 ${eok(R.peak)} (월${R.peakM})</text>`;
+  s+=`<line class="axis" x1="${pl}" x2="${W-pr}" y1="${pt+ih}" y2="${pt+ih}"/></svg>`;
+  return `<div class="chart">${s}</div><div class="keys"><span><i style="background:var(--bar-in)"></i>매출(LH 수령)</span><span><i style="background:var(--bar-out)"></i>사업비 지출</span><span><i style="background:var(--loan);height:3px"></i>대출잔액</span></div>`;
+}
+
+TABS.cf=()=>{ const R=compute(S), N=R.N, st=S.sched.start, m=R.m;
+  const mk={}; [["m1","①계약"],["m2","②인허가"],["m4","④착공"],["m5","⑤준공"],["m6","⑥사용승인"],["m7","⑦잔금"]].forEach(([k,l])=>{ mk[m[k]]=(mk[m[k]]?mk[m[k]]+" ":"")+l; });
+  const L=[["[매출]",null,"h"],["LH 토지확보지원금","r_support"],["LH 착공 후 공사대금","r_con"],["LH 계약금(정산)","r_dep"],["LH 잔금","r_bal"],["매출 합계","revM","s"],
+    ["[사업비]",null,"h"],["토지비 (계약금·잔금·취득세)","c_land"],["공사비+추가공사비","c_build"],["설계비","c_design"],["감리비","c_super"],["철거비","c_demo"],["인입비·예술장식품","c_util"],["예비비","c_cont"],
+    ["보존등기·채권","c_reg"],["보증료 (분양+HUG)","c_guar"],["부담금","c_levy"],["재산세·종부세","c_tax"],["신탁보수","c_trust"],["사업비 합계","costM","s"],
+    ["[자금]",null,"h"],["자기자본 투입","eq"],["대출잔액 (월말)","bal","s"],["월 이자","intM"],["유보 잉여현금","idle"]];
+  const arr=k=>R[k]||R.rows[k]||new Array(N+1).fill(0);
+  const cols=[...Array(N+1).keys()];
+  const head=`<tr><th>항목</th>${cols.map(t=>`<th class="n">월${t}<br><span class="muted">${ym(st,t)}</span>${mk[t]?`<br><span class="mk">${mk[t]}</span>`:""}</th>`).join("")}<th class="n">합계</th></tr>`;
+  const body=L.map(([l,k,t])=>{ if(t==="h") return `<tr class="grp"><td>${l}</td>${cols.map(()=>"<td></td>").join("")}<td></td></tr>`;
+    const a=arr(k), sum=k==="bal"?Math.max(...a):k==="idle"?a[N]:a.reduce((x,y)=>x+y,0);
+    return `<tr class="${t==="s"?"sub":""}"><td>${l}</td>${a.map(v=>`<td class="n ${v?"":"z"}">${v?fm(v):"·"}</td>`).join("")}<td class="n">${fm(sum)}${k==="bal"?" <span class='muted'>최대</span>":""}</td></tr>`; }).join("");
+  return `<h2>월별 현금흐름</h2><p class="lead">월0 = 토지매매계약(${ym(st,0)}). 대출잔액 = 전월잔액 + 사업비 − LH 수령액 − 자기자본(음수면 0). 이자 = 월초·월말 평균잔액 × 금리/12, 매월 현금 지급(원금 가산 없음). 단위 ${UNIT}.</p>
+  <div class="card"><h3>매출·사업비·대출잔액</h3>${cfChart(R)}</div>
+  <div class="tw"><table class="cf"><thead>${head}</thead><tbody>${body}</tbody></table></div>
+  <div class="card" style="margin-top:16px"><h3>금융비 요약</h3><div class="tw"><table><tbody>
+    <tr><td>최대 대출잔액 (Peak)</td><td class="n">${fm(R.peak)}</td><td class="note">월${R.peakM} (${ym(st,R.peakM)})</td></tr>
+    <tr><td>대출이자</td><td class="n">${fm(R.I.interest)}</td><td class="note">연 ${pc(S.fin.rate,2)}</td></tr>
+    <tr><td>취급수수료</td><td class="n">${fm(R.I.fee)}</td><td class="note">최대잔액 × ${pc(S.fin.feeRate,2)}</td></tr>
+    <tr><td>대리은행수수료</td><td class="n">${fm(R.I.agent)}</td><td class="note">(③약정체결~⑦잔금 ${m.m7-m.m3}개월 → ${R.quarters}분기) × 분기 ${n0(S.fin.agentQ/1e4)}만원</td></tr>
+    <tr class="tot"><td>금융비 합계</td><td class="n">${fm(R.finSub)}</td><td></td></tr></tbody></table></div></div>`; };
+
+TABS.fund=()=>{ const R=compute(S), t=R.peakM, st=S.sched.start;
+  const cum=a=>a.slice(0,t+1).reduce((x,y)=>x+y,0);
+  const cCost=cum(R.costM), cRev=cum(R.revM), eq=R.equity, idle=R.idle[t];
+  const hugOk=R.needLoan<=R.hugCap;
+  return `<h2>자금조달계획</h2><p class="lead">LH 선급 구조로 실제 차입 소요는 최대잔액 시점에서 결정됩니다. 단위 ${UNIT}.</p>
+  <div class="card"><h3>최대 차입 시점 조달 구조 <small>월${t} (${ym(st,t)}) 누적</small></h3><div class="tw"><table><thead><tr><th>조달 (Sources)</th><th class="n">금액</th><th class="n">비중</th><th>사용 (Uses)</th><th class="n">금액</th></tr></thead><tbody>
+    <tr><td>자기자본</td><td class="n">${fm(eq)}</td><td class="n">${pc(eq/(eq+cRev+R.peak))}</td><td>사업비 누적 지출</td><td class="n">${fm(cCost)}</td></tr>
+    <tr><td>LH 수령액 누계 (토지확보지원금·공사대금)</td><td class="n">${fm(cRev)}</td><td class="n">${pc(cRev/(eq+cRev+R.peak))}</td><td>유보 잉여현금</td><td class="n">${fm(idle)}</td></tr>
+    <tr><td>PF 대출 (특약보증부)</td><td class="n">${fm(R.peak)}</td><td class="n">${pc(R.peak/(eq+cRev+R.peak))}</td><td></td><td></td></tr>
+    <tr class="tot"><td>합계</td><td class="n">${fm(eq+cRev+R.peak)}</td><td></td><td>합계</td><td class="n">${fm(cCost+idle)}</td></tr></tbody></table></div></div>
+  <div class="card"><h3>사업 전체 조달 구조</h3><div class="tw"><table><thead><tr><th>구분</th><th class="n">금액</th><th class="n">총사업비 대비</th><th>비고</th></tr></thead><tbody>
+    <tr><td>자기자본</td><td class="n">${fm(eq)}</td><td class="n">${pc(eq/R.total)}</td><td class="note">토지매입비 × ${pc(S.land.eqRate,0)} (백만원 단위 올림) ${eok(R.eqBase)}${R.eqAdd?` + 특약보증 한도보정 ${eok(R.eqAdd)}`:""}, 월0 투입</td></tr>
+    <tr><td>LH 토지확보지원금</td><td class="n">${fm(R.support)}</td><td class="n">${pc(R.support/R.total)}</td><td class="note">약정체결 시 토지잔금 재원</td></tr>
+    <tr><td>LH 착공 후 공사대금</td><td class="n">${fm(R.segSum)}</td><td class="n">${pc(R.segSum/R.total)}</td><td class="note">3개월 단위 기성</td></tr>
+    <tr><td>PF 대출 최대잔액</td><td class="n">${fm(R.peak)}</td><td class="n">${pc(R.peak/R.total)}</td><td class="note">회전 사용 (LH 수령 시 상환)</td></tr>
+    <tr><td>LH 계약금·잔금 (준공 후)</td><td class="n">${fm(R.deposit+R.balance)}</td><td class="n">${pc((R.deposit+R.balance)/R.total)}</td><td class="note">대출 최종상환 및 이익 회수</td></tr></tbody></table></div></div>
+  <div class="card"><h3>HUG 도심주택 특약보증 한도 검토 <span class="pill ${hugOk?"ok":"bad"}">${hugOk?"한도 내":"한도 초과"}</span></h3><div class="tw"><table><tbody>
+    <tr><td>HUG 산정 총사업비</td><td class="n">${fm(R.hugTotal)}</td><td class="note">매입예정가 × ${pc(S.fin.hugBase,0)}</td></tr>
+    <tr><td>특약보증 한도 (대출가능액)</td><td class="n">${fm(R.hugCap)}</td><td class="note">× ${pc(S.fin.hugLimit,0)} (매입예정가 대비 ${pc(R.hugCap/R.rev)})</td></tr>
+    <tr><td>자기자본 (기본)</td><td class="n">${fm(R.eqBase)}</td><td class="note">토지매입비 × ${pc(S.land.eqRate,0)}, 백만원 단위 올림</td></tr>
+    <tr><td>보정 전 한도 부족액</td><td class="n">${fm(-R.eqShort0)}</td><td class="note">보정 전 (총사업비 − 기본 자기자본) − 한도</td></tr>
+    <tr><td>자기자본 증액 (한도보정)</td><td class="n">${fm(R.eqAdd)}</td><td class="note">${S.fin.autoEq!==false?"부족액을 억원 단위로 올려 증액 → 보증수수료·이자 재계산 후 한도 충족 확인":"자동 보정 꺼짐 — [일정·금융] 탭에서 켤 수 있음"}</td></tr>
+    <tr class="sub"><td>자기자본 (보정 후)</td><td class="n">${fm(R.equity)}</td><td class="note">토지매입비 대비 ${pc(R.equity/R.I.landBuy)}</td></tr>
+    <tr><td>보증대상 소요액 (총사업비 − 자기자본)</td><td class="n">${fm(R.needLoan)}</td><td class="note">보수적 기준 — LH 기성 수령 전 전액 차입 가정</td></tr>
+    <tr class="sub"><td>한도 여유 (+) / 부족 (△)</td><td class="n">${fm(R.hugCap-R.needLoan)}</td><td class="note">실제 최대잔액 ${fm(R.peak)} 대비 여유 ${fm(R.hugCap-R.peak)}</td></tr>
+    <tr><td>HUG 특약보증수수료</td><td class="n">${fm(R.I.hug)}</td><td class="note">보증대상 ${fm(R.guarBase)} × ${pc(S.cost.hugRate,2)} × ${S.sched.cons}/12</td></tr></tbody></table></div></div>`; };
+
+function heat(ax1,ax2,label1,label2,fmt1,fmt2){ const base=compute(S);
+  const vals=[-.1,-.05,0,.05,.1];
+  let h=`<div class="tw"><table class="heat"><thead><tr><th>${label1} ↓ / ${label2} →</th>${vals.map(v=>`<th class="n">${fmt2(v)}</th>`).join("")}</tr></thead><tbody>`;
+  vals.forEach(a=>{ h+=`<tr><th>${fmt1(a)}</th>`; vals.forEach(b=>{ const R=compute(S,{[ax1]:a,[ax2]:b});
+    const bg=R.profit<0?"var(--warnbg)":R.margin>=base.margin?"var(--accent-soft)":"transparent";
+    h+=`<td class="n ${a===0&&b===0?"base":""} ${R.profit<0?"neg":""}" style="background:${bg}">${fm(R.profit)}<br><span class="muted">${pc(R.margin)}</span></td>`; }); h+="</tr>"; });
+  return h+"</tbody></table></div>"; }
+
+TABS.profit=()=>{ const R=compute(S), st=S.sched.start;
+  const bePrice=(()=>{ let lo=-0.9,hi=0.5; for(let i=0;i<40;i++){ const mid=(lo+hi)/2; if(compute(S,{priceR:mid}).profit>0) hi=mid; else lo=mid; } return hi; })();
+  const avgP=R.rev/R.units;
+  const pF=v=>`호당 ${n0(avgP*(1+v)/1e6)}백만 (${v>0?"+":v<0?"−":""}${Math.abs(v*100)}%)`;
+  const bF=v=>`${n0(S.cost.buildUnit*(1+v)/1e4)}만/평`, lF=v=>`${n0(S.land.unit*(1+v)/1e4)}만/평`;
+  const eqRows=[.1,.2,.3,.5,1].map(r=>{ const X=compute(S,{eqRate:r}); return `<tr><td>${pc(r,0)}</td><td class="n">${fm(X.equity)}</td><td class="n">${fm(X.profit)}</td><td class="n">${n0(X.moic,2)}x</td><td class="n">${pc(X.irr)}</td></tr>`; }).join("");
+  return `<h2>수익성·민감도</h2><p class="lead">세전 기준(법인세 미반영). IRR은 자기자본을 월0 투입, 자기자본+세전손익을 월${R.m.m7}(⑦잔금) 일시 회수하는 2-포인트 방식 연환산. 단위 ${UNIT}.</p>
+  <div class="card"><h3>자기자본 수익성</h3><div class="tw"><table><tbody>
+    <tr><td>자기자본</td><td class="n">${fm(R.equity)}</td><td class="note">월0 (${ym(st,0)}) 투입${R.eqAdd?` · 기본 ${eok(R.eqBase)} + 한도보정 ${eok(R.eqAdd)}`:""}</td></tr>
+    <tr><td>세전 사업손익</td><td class="n">${fm(R.profit)}</td><td class="note">매출 대비 ${pc(R.margin)}</td></tr>
+    <tr><td>회수금액 (자기자본+손익)</td><td class="n">${fm(R.equity+R.profit)}</td><td class="note">월${R.m.m7} (${ym(st,R.m.m7)})</td></tr>
+    <tr class="sub"><td>Multiple (MOIC)</td><td class="n">${n0(R.moic,2)}x</td><td class="note">투자기간 ${R.m.m7}개월 (${n0(R.m.m7/12,2)}년)</td></tr>
+    <tr class="sub"><td>IRR (연환산)</td><td class="n">${pc(R.irr)}</td><td class="note">= MOIC^(12/${R.m.m7}) − 1</td></tr>
+    <tr><td>손익분기 호당 매입가</td><td class="n">${won(avgP*(1+bePrice))}원</td><td class="note">현재 대비 ${pc(bePrice)} — 매매금액이 이만큼 낮아지면 손익 0</td></tr>
+  </tbody></table></div></div>
+  <div class="card"><h3>호당 매입가 × 건축단가 <small>셀: 세전손익 / 손익률 · 기준 셀 테두리 · 전 항목 재계산(근사 없음)</small></h3>${heat("priceR","buildR","호당가","건축단가",pF,bF)}</div>
+  <div class="card"><h3>호당 매입가 × 토지단가</h3>${heat("priceR","landR","호당가","토지단가",pF,lF)}</div>
+  <div class="card"><h3>자기자본 비율별 수익성 <small>보증수수료 등 연동 항목 재계산</small></h3><div class="tw"><table><thead><tr><th>비율 (토지비 대비)</th><th class="n">자기자본</th><th class="n">세전손익</th><th class="n">Multiple</th><th class="n">IRR</th></tr></thead><tbody>${eqRows}</tbody></table></div></div>`; };
+
+/* ============================== 시장현황 (실거래·분양) ============================== */
+const med=a=>{ const s=a.filter(v=>isFinite(v)).sort((x,y)=>x-y); if(!s.length) return NaN; const k=s.length>>1; return s.length%2?s[k]:(s[k-1]+s[k])/2; };
+const ymDot=s=>String(s||"").replace(/^(\d{4})-?(\d{2}).*/,"$1.$2");
+function monthList(from,n){ const f=String(from).replace("-",""); const fy=+f.slice(0,4), fm=+f.slice(4,6); const out=[]; for(let i=0;i<n;i++){ const t=fy*12+fm-1+i; out.push(Math.floor(t/12)+"-"+String(t%12+1).padStart(2,"0")); } return out; }
+function marketStats(S){ const M=S.market; if(!M||!M.trades) return null; const o=S.marketOpt;
+  const refY=+String(M.params.to).slice(0,4)||new Date().getFullYear();
+  const bucket=t=>{ const age=refY-t.buildYear; return age<=o.newY?"신축":age<=o.semiY?"준신축":"구축"; };
+  const all=M.trades.map(t=>({...t,bucket:bucket(t)}));
+  const ex={canceled:all.filter(t=>t.canceled).length, direct:all.filter(t=>!t.canceled&&t.gbn==="직거래").length, low:all.filter(t=>!t.canceled&&t.floor<=o.lowMax).length};
+  const valid=all.filter(t=>!t.canceled&&!(o.exDirect&&t.gbn==="직거래")&&!(o.exLow&&t.floor<=o.lowMax));
+  const groups=new Map(); valid.forEach(t=>{ const k=t.apt+"|"+t.umd+"|"+t.jibun; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(t); });
+  const cx=[...groups.values()].map(g=>{ const last=g.reduce((a,b)=>a.date>=b.date?a:b); return { apt:g[0].apt, umd:g[0].umd, jibun:g[0].jibun, buildYear:g[0].buildYear, bucket:g[0].bucket, near:g[0].near, nearM:g[0].nearM, siteM:g[0].siteM,
+      n:g.length, last, medP:med(g.map(t=>t.price)), minP:Math.min(...g.map(t=>t.price)), maxP:Math.max(...g.map(t=>t.price)), medPy:med(g.map(t=>t.perPy)) }; }).sort((a,b)=>a.siteM-b.siteM);
+  const bk=["신축","준신축","구축"].map(b=>{ const g=valid.filter(t=>t.bucket===b); return {b,n:g.length,cx:new Set(g.map(t=>t.apt)).size,medP:med(g.map(t=>t.price)),medPy:med(g.map(t=>t.perPy))}; });
+  const recent=valid.filter(t=>t.bucket!=="구축");
+  const monthly=monthList(M.params.from,M.params.months||12).map(ym=>{ const g=valid.filter(t=>t.ym===ym); return {ym,n:g.length,medPy:med(g.map(t=>t.perPy))}; });
+  const rev=S.units.reduce((a,u)=>a+u.count*u.price,0);
+  const lhPy=rev/S.units.reduce((a,u)=>a+u.count*u.excl*PY,0), lhUnit=rev/S.units.reduce((a,u)=>a+u.count,0);
+  const cmpBase=recent.length>=5?{label:`신축·준신축(준공 ${o.semiY}년 이내)`,short:"신축·준신축",medPy:med(recent.map(t=>t.perPy)),n:recent.length}:{label:recent.length?`전체(신축·준신축 ${recent.length}건으로 표본 부족)`:"전체",short:"반경 내 전체",medPy:med(valid.map(t=>t.perPy)),n:valid.length};
+  const isPublic=p=>/신혼희망|공공분양|공공임대|국민임대/.test(p.name);
+  const psAll=(M.presale||[]).slice().sort((a,b)=>String(b.notice).localeCompare(String(a.notice)));
+  const ps=o.exPublic?psAll.filter(p=>!isPublic(p)):psAll;
+  const psCx=[...new Set(ps.map(p=>p.name))].map(n=>{ const g=ps.filter(p=>p.name===n); return {name:n, perPy:g.reduce((a,p)=>a+p.perPy,0)/g.length}; });
+  const nz=s=>String(s||"").replace(/[\s()]/g,"");
+  const silvAll=M.silv||[];
+  const silvValid=silvAll.filter(t=>!t.canceled&&!(o.exDirect&&t.gbn==="직거래")&&!(o.exLow&&t.floor<=o.lowMax));
+  const sgm=new Map(); silvValid.forEach(t=>{ if(!sgm.has(t.apt)) sgm.set(t.apt,[]); sgm.get(t.apt).push(t); });
+  const silvCx=[...sgm.values()].map(g=>{ const last=g.reduce((a,b)=>a.date>=b.date?a:b); const medPy=med(g.map(t=>t.perPy));
+      const pm=psAll.filter(p=>nz(p.name)===nz(g[0].apt)||nz(p.name).includes(nz(g[0].apt))||nz(g[0].apt).includes(nz(p.name)));
+      const prePy=pm.length?pm.reduce((a,p)=>a+p.perPy,0)/pm.length:NaN;
+      return { apt:g[0].apt, sgg:g[0].sgg, umd:g[0].umd, jibun:g[0].jibun, siteM:g[0].siteM, n:g.length, last, medP:med(g.map(t=>t.price)), medPy, prePy, prem:isFinite(prePy)?medPy/prePy-1:NaN }; })
+    .sort((a,b)=>(a.siteM??1e9)-(b.siteM??1e9));
+  const silvEx={canceled:silvAll.filter(t=>t.canceled).length, direct:silvAll.filter(t=>!t.canceled&&t.gbn==="직거래").length, low:silvAll.filter(t=>!t.canceled&&t.floor<=o.lowMax).length};
+  return { silvAll, silvValid, silvCx, silvEx, silvPy:med(silvCx.map(c=>c.medPy)), M, o, refY, all, valid, ex, cx, bk, monthly, lhPy, lhUnit, cmpBase, medP:med(valid.map(t=>t.price)), medPy:med(valid.map(t=>t.perPy)), ps, psCx, psPublic:psAll.length-ps.length, psPy:med(psCx.map(p=>p.perPy)) };
+}
+const fmtRate=r=>{ const s=String(r||"").trim(); if(!s||s==="-") return "-"; const m=s.match(/^(△s*([d,]+))$/); return m?"미달 △"+m[1]:s+" : 1"; };
+const man=v=>isFinite(v)?n0(v/1e4)+"만원":"-";
+const eok2=v=>isFinite(v)?n0(v/1e8,2)+"억원":"-";
+const centersLabel=M=>(M.centers||[]).map(c=>c.name).join("·");
+function marketText(MS){ const M=MS.M, p=M.params, o=MS.o;
+  const exl=["해제",o.exDirect?"직거래":"",o.exLow?`${o.lowMax}층 이하`:""].filter(Boolean).join("·");
+  let t=`${centersLabel(M)} 반경 ${p.radiusM}m 내 전용 ${p.area.min}~${p.area.max}㎡(59타입) 아파트 매매 실거래는 최근 ${p.months}개월(${ymDot(p.from)}~${ymDot(p.to)}) ${n0(MS.valid.length)}건(${MS.cx.length}개 단지, ${exl} 제외)이며, 중위 거래가 ${eok2(MS.medP)}, 전용평당 중위 ${man(MS.medPy)}이다.`;
+  const b=MS.bk.filter(x=>x.n).map(x=>`${x.b} ${man(x.medPy)}(${x.n}건)`); if(b.length) t+=` 준공연차별 전용평당 중위는 ${b.join(", ")}이다.`;
+  const r=MS.lhPy/MS.cmpBase.medPy;
+  t+=`\n본 사업 LH 매입예정가(호당 ${eok2(MS.lhUnit)}, 전용평당 ${man(MS.lhPy)})는 인근 ${MS.cmpBase.label} 실거래 전용평당 중위(${man(MS.cmpBase.medPy)}) 대비 ${isFinite(r)?(r*100).toFixed(1)+"%":"-"} 수준이다.`;
+  if(MS.silvCx.length){ const top=MS.silvCx.slice().sort((a,b)=>b.n-a.n).slice(0,3).map(c=>c.apt);
+    t+=`\n신축 비교를 위해 부천시 전체 59타입 분양권 전매 실거래를 보면 최근 ${p.months}개월 ${n0(MS.silvValid.length)}건(${MS.silvCx.length}개 단지: ${top.join(", ")}${MS.silvCx.length>3?" 외":""})이며, 단지별 전용평당 중위 ${man(MS.silvPy)}이다. LH 매입예정가는 이 대비 ${(MS.lhPy/MS.silvPy*100).toFixed(1)}% 수준이다.`; }
+  if(MS.ps.length){ const names=MS.psCx.map(x=>x.name);
+    t+=`\n동기간 부천시 분양 ${names.length}개 단지의 59타입 최고분양가는 단지별 전용평당 중위 ${man(MS.psPy)}(${names.slice(0,3).join(", ")}${names.length>3?" 외":""})이며, LH 매입예정가는 이 대비 ${(MS.lhPy/MS.psPy*100).toFixed(1)}% 수준이다.`; }
+  else t+=`\n동기간 부천시 내 59타입 신규 분양은 청약홈 기준 확인되지 않았다.`;
+  return t; }
+function mktChart(MS){ const d=MS.monthly, W=680, H=200, pl=56, pr=40, pt=16, pb=28, ih=H-pt-pb, bw=(W-pl-pr)/d.length;
+  const pys=d.map(x=>x.medPy).filter(isFinite); if(!pys.length) return `<p class="muted">월별로 집계할 거래가 없습니다.</p>`;
+  const lo=Math.min(...pys,MS.lhPy)*0.95, hi=Math.max(...pys,MS.lhPy)*1.05, y=v=>pt+ih-(v-lo)/(hi-lo)*ih, maxN=Math.max(...d.map(x=>x.n),1), cxp=i=>pl+i*bw+bw/2;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="월별 거래건수와 전용평당 중위가">`;
+  [lo,(lo+hi)/2,hi].forEach(v=>{ s+=`<line class="grid-l" x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}"/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end">${n0(v/1e4)}</text>`; });
+  d.forEach((x,i)=>{ const h=x.n/maxN*ih*0.45; s+=`<rect x="${pl+i*bw+bw*.25}" y="${pt+ih-h}" width="${bw*.5}" height="${h}" fill="var(--bar-out)"><title>${ymDot(x.ym)} ${x.n}건</title></rect>`;
+    if(x.n) s+=`<text x="${cxp(i)}" y="${pt+ih-h-3}" text-anchor="middle" style="font-size:10px">${x.n}</text>`;
+    s+=`<text x="${cxp(i)}" y="${H-8}" text-anchor="middle">${x.ym.slice(2).replace("-",".")}</text>`; });
+  s+=`<polyline points="${d.map((x,i)=>isFinite(x.medPy)?`${cxp(i)},${y(x.medPy)}`:null).filter(Boolean).join(" ")}" fill="none" stroke="var(--bar-in)" stroke-width="2"/>`;
+  d.forEach((x,i)=>{ if(isFinite(x.medPy)) s+=`<circle cx="${cxp(i)}" cy="${y(x.medPy)}" r="3" fill="var(--bar-in)"><title>${ymDot(x.ym)} 전용평당 중위 ${man(x.medPy)}</title></circle>`; });
+  s+=`<line x1="${pl}" x2="${W-pr}" y1="${y(MS.lhPy)}" y2="${y(MS.lhPy)}" stroke="var(--loan)" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${W-pr+4}" y="${y(MS.lhPy)+4}" style="fill:var(--loan);font-weight:600">LH</text></svg>`;
+  return `<div class="chart">${s}</div><div class="keys"><span><i style="background:var(--bar-in)"></i>전용평당 중위가(만원)</span><span><i style="background:var(--bar-out)"></i>거래건수</span><span><i style="background:var(--loan);height:3px"></i>LH 매입예정가 전용평당 ${man(MS.lhPy)}</span></div>`; }
+function cxTable(MS,compact){ return `<div class="tw"><table><thead><tr><th>단지</th><th>위치</th><th class="n">준공</th><th>구분</th><th class="n">사업지<br>거리</th><th class="n">건수</th><th class="n">중위가</th>${compact?"":`<th class="n">범위</th>`}<th class="n">전용평당<br>중위</th><th>최근 거래</th></tr></thead><tbody>
+  ${MS.cx.map(c=>`<tr><td>${esc(c.apt)}</td><td>${esc(c.umd)} ${esc(c.jibun)}<br><span class="muted">${esc(c.near)} ${n0(c.nearM)}m</span></td><td class="n">${c.buildYear}</td><td>${c.bucket}</td><td class="n">${n0(c.siteM)}m</td><td class="n">${c.n}</td><td class="n">${eok2(c.medP)}</td>${compact?"":`<td class="n">${n0(c.minP/1e8,2)}~${n0(c.maxP/1e8,2)}억</td>`}<td class="n">${man(c.medPy)}</td><td>${esc(c.last.date.slice(2).replace(/-/g,"."))} · ${n0(c.last.price/1e8,2)}억 · ${c.last.floor}층</td></tr>`).join("")||`<tr><td colspan="10" class="muted">조건에 맞는 거래가 없습니다.</td></tr>`}
+  </tbody></table></div>`; }
+function psTable(MS){ if(!MS.ps.length) return `<p class="muted">청약홈 기준 기간 내 59타입 분양 공고가 없습니다.</p>`;
+  return `<div class="tw"><table><thead><tr><th>단지</th><th>공고일</th><th>입주예정</th><th>주택형</th><th class="n">공급㎡</th><th class="n">일반공급</th><th class="n">최고분양가</th><th class="n">전용평당</th><th class="n">1순위 접수</th><th class="n">해당지역<br>경쟁률</th><th class="n">사업지<br>거리</th></tr></thead><tbody>
+  ${MS.ps.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.notice)}</td><td>${esc(p.moveIn)}</td><td>${esc(p.type)}</td><td class="n">${n0(p.supplyAr,2)}</td><td class="n">${n0(p.units)}</td><td class="n">${eok2(p.price)}</td><td class="n">${man(p.perPy)}</td><td class="n">${n0(p.rank1Req)}</td><td class="n">${esc(fmtRate(p.rank1Rate))}</td><td class="n">${p.siteM!=null?(p.siteM/1000).toFixed(1)+"km":"-"}</td></tr>`).join("")}</tbody></table></div>`; }
+
+function silvTable(MS,compact){ if(!MS.silvCx.length) return `<p class="muted">기간 내 59타입 분양권 전매 거래가 없습니다.</p>`;
+  return `<div class="tw"><table><thead><tr><th>단지</th><th>위치</th><th class="n">사업지<br>거리</th><th class="n">건수</th><th class="n">중위 거래가</th><th class="n">전용평당<br>중위</th><th class="n">최고분양가<br>전용평당</th><th class="n">최고분양가<br>대비</th>${compact?"":"<th>최근 거래</th>"}</tr></thead><tbody>
+  ${MS.silvCx.map(c=>`<tr><td>${esc(c.apt)}</td><td>${esc(c.sgg)} ${esc(c.umd)} ${esc(c.jibun)}</td><td class="n">${c.siteM!=null?(c.siteM/1000).toFixed(1)+"km":"-"}</td><td class="n">${c.n}</td><td class="n">${eok2(c.medP)}</td><td class="n">${man(c.medPy)}</td><td class="n">${man(c.prePy)}</td><td class="n ${c.prem<0?"neg":""}">${isFinite(c.prem)?(c.prem>=0?"+":"")+pc(c.prem):"-"}</td>${compact?"":`<td>${esc(c.last.date.slice(2).replace(/-/g,"."))} · ${n0(c.last.price/1e8,2)}억 · ${c.last.floor}층</td>`}</tr>`).join("")}
+  </tbody></table></div>`; }
+
+TABS.market=()=>{ const MS=marketStats(S), o=S.marketOpt;
+  const loader=`<div class="row-actions" style="margin-top:0"><label class="btn pri" for="mktFile" style="cursor:pointer">market.json 파일 선택</label><input type="file" id="mktFile" accept=".json,application/json" hidden>
+    <button class="btn" type="button" id="bMktPaste">붙여넣기로 가져오기</button>${MS?`<button class="btn" type="button" id="bMktClear">시장 데이터 지우기</button>`:""}</div>`;
+  if(!MS) return `<h2>시장현황 (실거래·분양)</h2><p class="lead">국토교통부 실거래가와 청약홈 분양 데이터를 로컬 수집기로 받아 이 화면에 불러옵니다. 앱은 보안상 외부 API를 직접 호출하지 않습니다.</p>
+    <div class="card"><h3>데이터 불러오기</h3>${loader}</div>
+    <div class="card"><h3>수집 순서</h3><ol style="margin:0;padding-left:20px;line-height:1.9">
+      <li>data.go.kr에서 실거래가 상세·청약홈 분양정보·청약 경쟁률 3개 API 활용신청, 카카오 developers에서 REST API 키 발급</li>
+      <li><code>99_Market/market-collector/.env.example</code>을 <code>.env</code>로 복사해 키 입력</li>
+      <li>연결 확인 <code>node collect.mjs --probe</code> → 본 수집 <code>node collect.mjs</code></li>
+      <li>생성된 <code>out/market.json</code>을 위 [market.json 파일 선택]으로 불러오기</li></ol>
+      <p class="muted" style="font-size:12.5px;margin:10px 0 0">기본 조건(config.json): 춘의역·신중동역 반경 500m, 최근 12개월, 전용 55~62㎡. 분양은 경기도 공고 중 주소에 '부천' 포함(반경 제한 없음, 사업지 거리 표시).</p></div>
+    ${S.comps.length?`<div class="card"><h3>기존 수동 입력 사례 <small>시장 데이터를 불러오면 사업계획서는 수집 데이터로 대체됩니다</small></h3><p class="muted" style="margin:0">${S.comps.length}개 단지 — [사업개요·입지] 탭에서 편집</p></div>`:""}`;
+  const M=MS.M, p=M.params, r=MS.lhPy/MS.cmpBase.medPy, pill=r<=0.9?"ok":r<=1?"mid":"bad";
+  return `<h2>시장현황 (실거래·분양)</h2>
+  <p class="lead">${esc(centersLabel(M))} 반경 ${p.radiusM}m · 계약 ${ymDot(p.from)}~${ymDot(p.to)} · 전용 ${p.area.min}~${p.area.max}㎡ · 수집 ${esc(String(M.generatedAt).slice(0,10))}</p>
+  ${loader}
+  <div class="card" style="margin-top:12px"><h3>집계 조건</h3><div class="row-actions" style="margin:0;gap:18px">
+    <label class="legend-in" for="mo-direct"><input type="checkbox" id="mo-direct" data-p="marketOpt.exDirect" data-k="bool" ${o.exDirect?"checked":""}> 직거래 제외 (${MS.ex.direct}건)</label>
+    <label class="legend-in" for="mo-low"><input type="checkbox" id="mo-low" data-p="marketOpt.exLow" data-k="bool" ${o.exLow?"checked":""}> ${o.lowMax}층 이하 제외 (${MS.ex.low}건)</label>
+    <label class="legend-in" for="mo-pub"><input type="checkbox" id="mo-pub" data-p="marketOpt.exPublic" data-k="bool" ${o.exPublic?"checked":""}> 분양: 공공분양·신혼희망타운 제외 (${MS.psPublic}개 주택형)</label>
+    <span class="legend-in">해제거래 ${MS.ex.canceled}건 항상 제외 · 신축 준공 ${o.newY}년 이내, 준신축 ${o.semiY}년 이내 (기준 ${MS.refY}년)</span></div></div>
+  <div class="kpis" style="margin-top:0">
+    <div class="kpi"><b>유효 거래</b><span>${n0(MS.valid.length)}건</span><small>${MS.cx.length}개 단지 · 수집 ${MS.all.length}건</small></div>
+    <div class="kpi"><b>59타입 중위 거래가</b><span>${eok2(MS.medP)}</span><small>전용평당 ${man(MS.medPy)}</small></div>
+    <div class="kpi"><b>${MS.cmpBase.short} 전용평당</b><span>${man(MS.cmpBase.medPy)}</span><small>${MS.cmpBase.n}건 중위</small></div>
+    <div class="kpi hl"><b>LH 매입예정가 전용평당</b><span>${man(MS.lhPy)}</span><small>호당 ${eok2(MS.lhUnit)}</small></div>
+    <div class="kpi"><b>LH ÷ ${MS.cmpBase.short} 시세</b><span>${isFinite(r)?(r*100).toFixed(1)+"%":"-"}</span><small><span class="pill ${pill}">${r<=0.9?"시세 대비 낮음":r<=1?"시세 근접":"시세 초과"}</span></small></div>
+    <div class="kpi"><b>부천 분양권 59 전용평당</b><span>${man(MS.silvPy)}</span><small>${MS.silvCx.length}개 단지 · LH ${isFinite(MS.silvPy)?(MS.lhPy/MS.silvPy*100).toFixed(1)+"%":"-"}</small></div>
+    <div class="kpi"><b>부천 분양 59 전용평당</b><span>${man(MS.psPy)}</span><small>${MS.psCx.length}개 단지 · 단지별 중위</small></div>
+  </div>
+  <div class="card"><h3>준공연차별</h3><div class="tw"><table><thead><tr><th>구분</th><th class="n">거래</th><th class="n">단지</th><th class="n">중위 거래가</th><th class="n">전용평당 중위</th><th class="n">LH ÷ 시세</th></tr></thead><tbody>
+    ${MS.bk.map(b=>`<tr><td>${b.b}</td><td class="n">${b.n}</td><td class="n">${b.cx}</td><td class="n">${eok2(b.medP)}</td><td class="n">${man(b.medPy)}</td><td class="n">${b.n?(MS.lhPy/b.medPy*100).toFixed(1)+"%":"-"}</td></tr>`).join("")}</tbody></table></div></div>
+  <div class="card"><h3>월별 추이</h3>${mktChart(MS)}</div>
+  <div class="card"><h3>단지별 실거래 <small>사업지 거리순</small></h3>${cxTable(MS)}</div>
+  <div class="card"><h3>청약홈 분양 (59타입) <small>${esc(p.presaleRegion||"")} · 공고 ${esc(p.presaleFrom||"")} 이후</small></h3>${psTable(MS)}</div>
+  <div class="card"><h3>분양권 전매 실거래 (59타입) <small>${esc(p.silvScope||"")} 전체 · ${ymDot(p.silvFrom||p.from)}~${ymDot(p.silvTo||p.to)} · 해제 ${MS.silvEx.canceled}건${MS.o.exDirect?` · 직거래 ${MS.silvEx.direct}건`:""}${MS.o.exLow?` · ${MS.o.lowMax}층 이하 ${MS.silvEx.low}건`:""} 제외 · 최고분양가 대비는 청약홈 12개월 내 공고 단지만 — 최고가 기준이라 층·호별 실제 분양가보다 높게 잡힘</small></h3>${silvTable(MS)}</div>
+  <div class="card"><h3>시장 현황 문단 (자동 작성)</h3><p style="white-space:pre-line;margin:0 0 10px;max-width:80ch">${esc(marketText(MS))}</p>
+    <div class="row-actions"><button class="btn pri" type="button" id="bMktText">사업계획서 '시장 현황' 문단을 이 내용으로 교체</button></div>
+    <p class="muted" style="font-size:12px;margin:8px 0 0">출처: ${esc((M.sources||[]).join(", "))}</p></div>`; };
+
+function docMarket(MS,R,para){ const M=MS.M, p=M.params, o=MS.o;
+  return `<h3>시장 현황</h3>${para(S.text.market)}
+    <div class="tw"><table><thead><tr><th>구분 (실거래 59타입)</th><th class="n">거래</th><th class="n">중위 거래가</th><th class="n">전용평당 중위</th><th class="n">LH ÷ 시세</th></tr></thead><tbody>
+      ${MS.bk.filter(b=>b.n).map(b=>`<tr><td>${b.b}</td><td class="n">${b.n}</td><td class="n">${eok2(b.medP)}</td><td class="n">${man(b.medPy)}</td><td class="n">${(MS.lhPy/b.medPy*100).toFixed(1)}%</td></tr>`).join("")}
+      ${MS.silvCx.length?`<tr><td>신축 분양권 (부천시, ${MS.silvCx.length}개 단지 중위)</td><td class="n">${MS.silvValid.length}</td><td class="n">${eok2(med(MS.silvValid.map(t=>t.price)))}</td><td class="n">${man(MS.silvPy)}</td><td class="n">${(MS.lhPy/MS.silvPy*100).toFixed(1)}%</td></tr>`:""}
+      <tr class="sub"><td>반경 내 실거래 전체</td><td class="n">${MS.valid.length}</td><td class="n">${eok2(MS.medP)}</td><td class="n">${man(MS.medPy)}</td><td class="n">${(MS.lhPy/MS.medPy*100).toFixed(1)}%</td></tr>
+      <tr class="tot"><td>본 사업 LH 매입예정가</td><td></td><td class="n">${eok2(MS.lhUnit)}</td><td class="n">${man(MS.lhPy)}</td><td></td></tr></tbody></table></div>
+    ${compsTable()}
+    <p class="src">실거래: ${esc(centersLabel(M))} 반경 ${p.radiusM}m, ${ymDot(p.from)}~${ymDot(p.to)} 계약, 전용 ${p.area.min}~${p.area.max}㎡, 해제${o.exDirect?"·직거래":""}${o.exLow?`·${o.lowMax}층 이하`:""} 제외 (국토교통부 실거래가). 분양권: 부천시 전체, 국토교통부 분양권전매 실거래가. 분양: 한국부동산원 청약홈.</p>`; }
+
+function loadMarket(o){ if(!o||o.kind!=="lh-plan-market"||!Array.isArray(o.trades)) throw new Error("market.json 형식이 아닙니다"); S.market=o; autoComps(); save(); render(); toast(`시장 데이터 ${o.trades.length}건을 불러왔습니다`); }
+
+/* ============================== 인근 시세 사례 (시장현황 요약) ============================== */
+function compsFromMarket(MS){
+  const d=m=>m==null?"":m<1000?Math.round(m)+"m":(m/1000).toFixed(1)+"km";
+  const rows=[];
+  MS.cx.filter(c=>c.n>=2).slice(0,6).forEach(c=>rows.push({cat:"실거래", name:c.apt, year:String(c.buildYear||""), dist:d(c.siteM), n:c.n, when:ymDot(c.last.date), price:+(c.medP/1e8).toFixed(2), perPy:Math.round(c.medPy/1e4)}));
+  MS.silvCx.slice().sort((a,b)=>b.n-a.n).slice(0,3).forEach(c=>rows.push({cat:"분양권", name:c.apt, year:"신축(분양권)", dist:d(c.siteM), n:c.n, when:ymDot(c.last.date), price:+(c.medP/1e8).toFixed(2), perPy:Math.round(c.medPy/1e4)}));
+  const byName=new Map(); MS.ps.forEach(p=>{ if(!byName.has(p.name)) byName.set(p.name,[]); byName.get(p.name).push(p); });
+  [...byName.values()].map(g=>({g, siteM:g[0].siteM})).sort((a,b)=>(a.siteM??1e9)-(b.siteM??1e9)).slice(0,3).forEach(({g})=>{
+    const p=g[0], mv=String(p.moveIn||""); rows.push({cat:"분양", name:p.name, year:mv?"입주 "+mv.slice(0,4)+"."+mv.slice(4,6):"", dist:d(p.siteM), n:"", when:ymDot(p.notice),
+      price:+(g.reduce((a,x)=>a+x.price,0)/g.length/1e8).toFixed(2), perPy:Math.round(g.reduce((a,x)=>a+x.perPy,0)/g.length/1e4)}); });
+  return rows;
+}
+function autoComps(){ const MS=marketStats(S); if(MS){ S.comps=compsFromMarket(MS); return true; } return false; }
+function compsTable(){ if(!S.comps.length) return "";
+  const rev=S.units.reduce((a,u)=>a+u.count*u.price,0), lhPy=rev/S.units.reduce((a,u)=>a+u.count*u.excl*PY,0)/1e4, lhUnit=rev/S.units.reduce((a,u)=>a+u.count,0)/1e8;
+  return `<div class="tw"><table><thead><tr><th>구분</th><th>단지명</th><th>준공·입주</th><th class="n">사업지<br>거리</th><th class="n">건수</th><th>기준시점</th><th class="n">중위가</th><th class="n">전용평당</th><th class="n">LH ÷ 사례</th></tr></thead><tbody>
+    ${S.comps.map(c=>`<tr><td>${esc(c.cat)}</td><td>${esc(c.name)}</td><td>${esc(c.year)}</td><td class="n">${esc(c.dist)}</td><td class="n">${esc(c.n)}</td><td>${esc(c.when)}</td><td class="n">${+c.price?n0(c.price,2)+"억":"-"}</td><td class="n">${+c.perPy?n0(c.perPy)+"만":"-"}</td><td class="n">${+c.perPy?(lhPy/c.perPy*100).toFixed(1)+"%":"-"}</td></tr>`).join("")}
+    <tr class="tot"><td colspan="6">본 사업 LH 매입예정가</td><td class="n">${n0(lhUnit,2)}억</td><td class="n">${n0(lhPy)}만</td><td></td></tr></tbody></table></div>`; }
+
+/* ============================== 건축개요 PDF 자동 입력 ============================== */
+const PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+const PDF={html:"", result:null, ctl:null, name:"", via:""};
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=()=>rej(new Error("PDF 모듈을 불러오지 못했습니다")); document.head.appendChild(s); }); }
+async function pdfLib(){ if(!window.pdfjsLib){ await loadScript(PDFJS+"pdf.min.js"); await loadScript(PDFJS+"pdf.worker.min.js"); window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+"pdf.worker.min.js"; } return window.pdfjsLib; }
+function pdfSet(h){ PDF.html=h; const el=document.getElementById("pdfOut"); if(el) el.innerHTML=h; }
+function pdfStop(show){ const b=document.getElementById("bPdfStop"); if(b) b.hidden=!show; }
+const PDF_FIELDS=[["site.siteM2","대지면적","㎡","num"],["bldg.gfaM2","연면적 (지상+지하)","㎡","num"],["bldg.aboveM2","지상 연면적","㎡","num"],["bldg.belowM2","지하 연면적","㎡","num"],
+  ["bldg.bcr","건폐율","","text"],["bldg.far","용적률","","text"],["bldg.floors","규모 (층수·동수)","","text"],["bldg.parking","주차","","text"],["site.address","소재지","","text"],["site.zone","용도지역","","text"]];
+const PDF_KEYS={"site.siteM2":"siteM2","bldg.gfaM2":"gfaM2","bldg.aboveM2":"aboveM2","bldg.belowM2":"belowM2","bldg.bcr":"bcr","bldg.far":"far","bldg.floors":"floors","bldg.parking":"parking","site.address":"address","site.zone":"zone"};
+function pdfPrompt(text){ return `아래는 공동주택 신축사업의 건축개요(설계개요) PDF에서 추출한 내용이다. 문서 속 수치만 사용해 항목을 찾아 JSON 객체 하나로만 답하라. 문서에 없는 값은 null.
+형식 예시:
+{"address":"경기도 부천시 원미구 춘의동 212-3 외 2필지","zone":"제2종일반주거지역","siteM2":3231.0,"gfaM2":13650.0,"aboveM2":8850.0,"belowM2":4800.0,"bcr":"54.9%","far":"273.9%","floors":"지하 3층 / 지상 15층, 2개동","parking":"128대 (법정 120대)","units":[{"type":"59A","excl":59.97,"count":80},{"type":"59B","excl":59.85,"count":40}],"notes":"판단이 애매했던 항목 설명 1~2문장"}
+규칙:
+- 면적은 ㎡ 숫자. 평으로만 적혀 있으면 ÷0.3025로 ㎡ 환산하고 notes에 적는다.
+- siteM2는 사업(실사용) 대지면적. 도로 편입·기부채납 전후 값이 함께 있으면 건폐율·용적률 산정에 쓰인 대지면적.
+- gfaM2는 지상+지하 전체 연면적, aboveM2는 지상층 연면적(용적률 산정용 연면적이 별도로 있으면 그 값), belowM2는 지하층 연면적.
+- bcr·far는 계획(설계) 값에 %를 붙인 문자열. 법정 상한만 있으면 "법정 60% 이하"처럼 적는다.
+- units는 주택형(타입)별 전용면적(㎡)과 세대수. 공급면적·계약면적이 아닌 전용면적. 세대수 합계만 있으면 한 줄로 type "합계".
+- 숫자에는 쉼표를 넣지 않는다.
+
+[PDF 내용]
+${text}`; }
+function regexExtract(t){
+  const T=t.replace(/\s+/g," "), n=s=>+String(s).replace(/,/g,"");
+  const area=re=>{ const m=T.match(re); if(!m) return null; let v=n(m[1]); if(/평/.test(m[2]||"")) v=v/PY; return isFinite(v)&&v>0?+v.toFixed(2):null; };
+  const U="\\s*(㎡|m2|m²|평)?";
+  const cnt=T.match(/(?:총\s*)?세\s*대\s*수[^\d]{0,10}([\d,]+)|([\d,]+)\s*세대/);
+  return { siteM2:area(new RegExp("대\\s*지\\s*면\\s*적[^\\d]{0,20}([\\d,]+\\.?\\d*)"+U)),
+    gfaM2:area(new RegExp("(?:^|[^지상하])\\s*연\\s*면\\s*적\\s*(?:합계|계)?[^\\d]{0,20}([\\d,]+\\.?\\d*)"+U)),
+    aboveM2:area(new RegExp("용적률\\s*산정용\\s*연면적[^\\d]{0,20}([\\d,]+\\.?\\d*)"+U))||area(new RegExp("지\\s*상\\s*(?:층\\s*)?(?:연\\s*)?면\\s*적[^\\d]{0,20}([\\d,]+\\.?\\d*)"+U)),
+    belowM2:area(new RegExp("지\\s*하\\s*(?:층\\s*)?(?:연\\s*)?면\\s*적[^\\d]{0,20}([\\d,]+\\.?\\d*)"+U)),
+    bcr:(T.match(/건\s*폐\s*율[^\d]{0,15}([\d.]+\s*%)/)||[])[1]||null, far:(T.match(/용\s*적\s*률[^\d]{0,15}([\d.]+\s*%)/)||[])[1]||null,
+    floors:(T.match(/(지하\s*\d+\s*층\s*[,/~·]?\s*지상\s*\d+\s*층)/)||[])[1]||null, parking:(T.match(/주\s*차\s*(?:대\s*수)?[^\d]{0,12}([\d,]+\s*대)/)||[])[1]||null,
+    address:null, zone:(T.match(/(제[123]종\s*일반주거지역|준주거지역|일반상업지역|준공업지역|제[12]종\s*전용주거지역)/)||[])[1]||null,
+    units:cnt?[{type:"합계",excl:null,count:n(cnt[1]||cnt[2])}]:[], notes:"규칙 기반 추출(키워드 인근 숫자) — 표 구조에 따라 틀릴 수 있어 반드시 확인하세요." };
+}
+async function readPdf(file){
+  const UNAVAIL=["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed","images_unavailable"];
+  let text="";
+  try{
+    pdfSet(`<p class="muted">PDF 여는 중…</p>`);
+    const lib=await pdfLib();
+    const doc=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+    const N=Math.min(doc.numPages,15);
+    for(let i=1;i<=N;i++){ const pg=await doc.getPage(i); const tc=await pg.getTextContent(); text+=`\n[p.${i}]\n`+tc.items.map(it=>it.str+(it.hasEOL?"\n":" ")).join(""); }
+    text=text.replace(/[ \t]+/g," ").trim();
+    const hangul=(text.match(/[가-힣]/g)||[]).length, scanned=hangul<20;
+    const sample=window.claude?.use? await window.claude.use("sample") : null;
+    let out, via;
+    if(sample){
+      let images;
+      if(scanned){
+        const lim=await sample.limits().catch(()=>null);
+        if(!lim?.images) throw {code:"scan_no_images"};
+        images=[];
+        for(let i=1;i<=Math.min(N,lim.images.maxCount,4);i++){ const pg=await doc.getPage(i); const vp=pg.getViewport({scale:2}); const c=document.createElement("canvas"); c.width=vp.width; c.height=vp.height;
+          await pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise; images.push(await new Promise(r=>c.toBlob(r,"image/png"))); }
+      }
+      PDF.ctl=new AbortController(); pdfStop(true);
+      pdfSet(`<p class="muted">Claude가 건축개요 항목을 찾는 중… 보통 10~60초 걸립니다${scanned?" (스캔본 — 페이지 이미지로 판독)":""}.</p>`);
+      try{ out=await sample.json(pdfPrompt(scanned?"(글자 레이어가 없는 스캔본입니다. 첨부된 페이지 이미지를 읽으세요.)":text.slice(0,40000)), {signal:PDF.ctl.signal, images}); via="Claude 판독"; }
+      catch(e){ if(UNAVAIL.includes(e?.code) && !scanned){ out=regexExtract(text); via="규칙 기반 추출 (Claude 사용 불가)"; } else throw e; }
+    } else {
+      if(scanned) throw {code:"scan_no_sample"};
+      out=regexExtract(text); via="규칙 기반 추출";
+    }
+    PDF.result=out||{}; PDF.name=file.name; PDF.via=via; renderPdfReview();
+  }catch(e){
+    const msg={cancelled:"중지했습니다.", scan_no_images:"글자 레이어가 없는 스캔 PDF입니다. 이 화면에서는 이미지 판독을 쓸 수 없어 값을 직접 입력해야 합니다.",
+      scan_no_sample:"글자 레이어가 없는 스캔 PDF입니다. Claude 판독을 쓸 수 없는 화면이라 값을 직접 입력해야 합니다.", not_granted:"Claude 사용이 허용되지 않았습니다. 규칙 기반 추출도 실패했습니다.",
+      rate_limited:"요청이 많습니다. 잠시 후 다시 시도하세요.", invalid_json:"응답을 해석하지 못했습니다. 다시 시도하세요.", refused:"이 문서는 판독하지 못했습니다."}[e?.code]
+      || (e?.name==="PasswordException"?"암호가 걸린 PDF입니다. 암호를 해제한 파일을 올려 주세요.":"PDF를 읽지 못했습니다: "+(e?.message||e?.code||e));
+    pdfSet(`<div class="flag"><b>확인</b><span>${esc(msg)}</span></div>`);
+  }finally{ PDF.ctl=null; pdfStop(false); }
+}
+function pdfShow(v,kind){ if(v==null||v==="") return `<span class="muted">—</span>`; return kind==="num"?n0(v,2)+" ㎡":esc(v); }
+function renderPdfReview(){ const r=PDF.result;
+  const rows=PDF_FIELDS.map(([p,l,u,k],i)=>{ const nv=r[PDF_KEYS[p]], cur=getP(S,p); const has=nv!=null&&nv!==""&&!(k==="num"&&!(+nv>0));
+    const same=has&&(k==="num"?Math.abs(+nv-(+cur||0))<0.01:String(nv)===String(cur));
+    return `<tr><td><input type="checkbox" id="px-${i}" ${has&&!same?"checked":""} ${has?"":"disabled"} aria-label="${esc(l)} 적용"></td><td>${esc(l)}</td><td class="n">${pdfShow(cur,k)}</td><td class="n" style="${has&&!same?"font-weight:600":""}">${pdfShow(has?nv:null,k)}</td></tr>`; }).join("");
+  const us=Array.isArray(r.units)?r.units.filter(u=>u&&+u.count>0):[];
+  const cu=S.units.map(u=>`${esc(u.type)} ${n0(u.count)}세대`).join(", ");
+  const nu=us.map(u=>`${esc(u.type||"")}${u.excl?` (전용 ${n0(u.excl,2)}㎡)`:""} ${n0(u.count)}세대`).join(", ");
+  pdfSet(`<p style="margin:0 0 8px;font-size:13px"><b>${esc(PDF.name)}</b> <span class="muted">· ${esc(PDF.via)} · 굵은 값이 현재와 다른 항목, 체크된 항목만 적용</span></p>
+    <div class="tw"><table><thead><tr><th></th><th>항목</th><th class="n">현재 입력</th><th class="n">PDF 추출</th></tr></thead><tbody>${rows}
+      <tr><td><input type="checkbox" id="px-units" ${us.length?"checked":"disabled"} aria-label="세대 구성 적용"></td><td>세대 구성</td><td class="n">${cu||"—"}</td><td class="n" style="font-weight:600">${nu||`<span class="muted">—</span>`}</td></tr></tbody></table></div>
+    ${r.notes?`<p class="muted" style="font-size:12.5px;margin:8px 0 0">메모: ${esc(r.notes)}</p>`:""}
+    <div class="row-actions"><button class="btn pri" type="button" id="bPdfApply">선택 항목 적용</button><button class="btn" type="button" id="bPdfDiscard">결과 닫기</button></div>
+    <p class="muted" style="font-size:12px;margin:6px 0 0">세대 구성을 적용하면 전용면적이 가까운(±1㎡) 기존 타입의 호당 매입예정가를 이어받고, 새 타입은 첫 타입 가격으로 채웁니다.</p>`);
+}
+function applyPdf(){ const r=PDF.result; if(!r) return; let n=0;
+  PDF_FIELDS.forEach(([p,,,k],i)=>{ const cb=document.getElementById("px-"+i); if(!cb?.checked) return; const v=r[PDF_KEYS[p]]; setP(S,p,k==="num"?+(+v).toFixed(2):String(v)); n++; });
+  const cu=document.getElementById("px-units");
+  if(cu?.checked&&Array.isArray(r.units)){ const us=r.units.filter(u=>u&&+u.count>0); if(us.length){ const base=S.units[0]?.price||0;
+    S.units=us.map(u=>{ const excl=+u.excl||S.units[0]?.excl||59; const m=S.units.find(x=>Math.abs(x.excl-excl)<1);
+      return {type:u.type&&u.type!=="합계"?(/㎡|m/.test(u.type)?u.type:`${u.type} (전용 ${n0(excl,2)}㎡)`):`전용 ${n0(excl,0)}㎡`, excl, count:+u.count, price:m?m.price:base}; }); n++; } }
+  PDF.result=null; PDF.html=""; recalc(); render(); toast(`${n}개 항목을 적용했습니다`); }
+
+/* ============================== 토지·건물 불러오기 (VWorld·건축물대장) ============================== */
+const LAND={html:"", data:null};
+function landSet(h){ LAND.html=h; const el=document.getElementById("landOut"); if(el) el.innerHTML=h; }
+const uniq=a=>[...new Set(a.filter(Boolean))];
+function landDerive(o){ const ps=o.parcels.filter(p=>!p.error);
+  const zones=uniq(ps.map(p=>p.zone));
+  const plans=uniq(ps.flatMap(p=>p.plans.map(x=>x.name)));
+  const roads=uniq(ps.flatMap(p=>p.plans.filter(x=>/류\s*\(/.test(x.name)).map(x=>x.name.replace(/\s+/g,""))));
+  const district=plans.filter(n=>!zones.includes(n)&&!/류\s*\(/.test(n)).join(", ");
+  const bldgs=ps.flatMap(p=>p.bldgs.map(b=>({lot:p.lot,...b})));
+  const bArea=ps.reduce((a,p)=>a+(p.bldgArea||0),0);
+  const pYear=Math.max(...ps.map(p=>p.priceYear||0));
+  const status=p=>[p.landUse, p.bldgs.length?p.bldgs.map(b=>`${b.dong||""} ${b.purpose} ${n0(b.totArea,1)}㎡`.trim()).join(", "):"건물 없음"].filter(Boolean).join(" · ");
+  const parcels=ps.map(p=>{ const old=S.site.parcels.find(x=>String(x.lot).trim()===p.lot); return {lot:p.lot, jimok:p.jimok, m2:p.m2, price:p.price, owner:old?.owner||"", status:status(p)}; });
+  return {ps, zones, plans, roads, district, bldgs, bArea, pYear, parcels, m2:ps.reduce((a,p)=>a+(p.m2||0),0)};
+}
+const LAND_ITEMS=[
+  ["parcels","필지 현황 (지번·지목·면적·공시지가·현황)",d=>d.parcels.map(p=>`${p.lot} ${p.jimok} ${n0(p.m2,1)}㎡ ${n0(p.price)}원`).join("<br>"),()=>S.site.parcels.map(p=>`${esc(p.lot)} ${esc(p.jimok)} ${n0(p.m2,1)}㎡ ${n0(p.price)}원`).join("<br>"),true],
+  ["siteM2","대지면적 (공부상 합계)",d=>n0(d.m2,2)+"㎡",()=>n0(S.site.siteM2,2)+"㎡",false],
+  ["zone","용도지역",d=>esc(d.zones.join(", ")),()=>esc(S.site.zone),true],
+  ["district","용도지구·구역 등",d=>esc(d.district),()=>esc(S.site.district),true],
+  ["roads","접도",d=>esc(d.roads.join(", ")),()=>esc(S.site.roads),true],
+  ["existing","기존 건물 연면적 (철거비)",d=>`${n0(d.bArea,2)}㎡ = ${n0(d.bArea*PY,2)}평 (${d.bldgs.length}동)`,()=>n0(S.bldg.existingPy,2)+"평",true],
+  ["baseYear","공시지가 기준연도 (재산세)",d=>d.pYear+"년",()=>S.tax.baseYear+"년",true]
+];
+function loadLand(o){ if(!o||o.kind!=="lh-plan-land"||!Array.isArray(o.parcels)) throw new Error("land.json 형식이 아닙니다");
+  LAND.data=o; const d=landDerive(o), errs=o.parcels.filter(p=>p.error);
+  const flags=[];
+  if(d.plans.some(n=>/토지거래계약에관한허가구역/.test(n))) flags.push("토지거래허가구역 — 토지 매매계약 전 시·군·구청 허가가 필요합니다. 일정(계약월)에 허가 기간을 반영하세요.");
+  if(d.plans.some(n=>/상대보호구역|절대보호구역/.test(n))) flags.push("교육환경보호구역(상대/절대) — 공동주택은 대체로 금지시설이 아니나, 공사 중 교육환경 영향 검토 대상인지 확인하세요.");
+  if(d.bldgs.some(b=>/위험물/.test(b.purpose||""))) flags.push("위험물저장및처리시설(주유소) — 철거 전 토양오염도 조사·정화 비용과 기간을 사업비·일정에 반영하세요.");
+  if(Math.abs(d.m2-(+S.site.siteM2||0))>=1) flags.push(`공부상 면적 합계 ${n0(d.m2,2)}㎡가 현재 대지면적 ${n0(S.site.siteM2,2)}㎡와 다릅니다. 설계(건축개요) 대지면적을 쓰는 경우 대지면적은 적용하지 마세요.`);
+  landSet(`${errs.length?`<div class="flag"><b>조회 실패</b><span>${errs.map(e=>esc(e.input)+": "+esc(e.error)).join("<br>")}</span></div>`:""}
+    ${flags.map(f=>`<div class="flag"><b>확인</b><span>${f}</span></div>`).join("")}
+    <div class="tw"><table><thead><tr><th></th><th>항목</th><th>현재 입력</th><th>조회 결과</th></tr></thead><tbody>
+    ${LAND_ITEMS.map(([k,l,nv,cv,def])=>`<tr><td><input type="checkbox" id="lx-${k}" ${def?"checked":""} aria-label="${esc(l)} 적용"></td><td>${esc(l)}</td><td>${cv()}</td><td style="font-weight:600">${nv(d)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <details style="margin-top:8px"><summary class="muted" style="cursor:pointer;font-size:12.5px">필지별 토지이용계획·건축물대장 상세</summary>
+      <div class="tw" style="margin-top:6px"><table><thead><tr><th>지번</th><th>PNU</th><th>형상·도로</th><th>토지이용계획</th><th>건축물</th></tr></thead><tbody>
+      ${d.ps.map(p=>`<tr><td>${esc(p.lot)}</td><td><span class="muted">${esc(p.pnu)}</span></td><td>${esc(p.shape)} · ${esc(p.road)}</td><td class="note">${p.plans.map(x=>esc(x.name)+`<span class="muted">(${esc(x.rel)})</span>`).join(", ")}</td><td class="note">${p.bldgs.map(b=>`${esc(b.dong||"")} ${esc(b.purpose)} ${n0(b.totArea,1)}㎡ · 지상${b.floorsAbove??"-"}/지하${b.floorsBelow??"-"} · ${esc(String(b.useAprDay).replace(/^(\d{4})(\d{2})(\d{2})$/,"$1.$2.$3"))}`).join("<br>")||"—"}</td></tr>`).join("")}
+      </tbody></table></div></details>
+    <div class="row-actions"><button class="btn pri" type="button" id="bLandApply">선택 항목 적용</button><button class="btn" type="button" id="bLandDiscard">결과 닫기</button></div>
+    <p class="muted" style="font-size:12px;margin:6px 0 0">소유자는 공개 API로 조회되지 않아 기존 입력(지번이 같은 행)을 유지합니다. 조회 ${esc(String(o.generatedAt).slice(0,10))} · ${esc((o.sources||[]).join(", "))}</p>`);
+}
+function applyLand(){ const o=LAND.data; if(!o) return; const d=landDerive(o), on=k=>document.getElementById("lx-"+k)?.checked; let n=0;
+  if(on("parcels")){ S.site.parcels=d.parcels; n++; }
+  if(on("siteM2")){ S.site.siteM2=+d.m2.toFixed(2); n++; }
+  if(on("zone")){ S.site.zone=d.zones.join(", "); n++; }
+  if(on("district")){ S.site.district=d.district; n++; }
+  if(on("roads")){ S.site.roads=d.roads.join(", "); n++; }
+  if(on("existing")){ S.bldg.existingPy=+(d.bArea*PY).toFixed(4); n++; }
+  if(on("baseYear")&&d.pYear){ S.tax.baseYear=d.pYear; n++; }
+  S.site.plans=d.plans; S.site.bldgs=d.bldgs.map(b=>({lot:b.lot,dong:b.dong,purpose:b.purpose,totArea:b.totArea,floorsAbove:b.floorsAbove,floorsBelow:b.floorsBelow,useAprDay:b.useAprDay}));
+  LAND.data=null; LAND.html=""; recalc(); render(); toast(`${n}개 항목을 적용했습니다`); }
+
+/* ============================== 사업계획서 ============================== */
+function gantt(R){ const m=R.m, N=R.m.m7, st=S.sched.start, pct=v=>(v/N*100);
+  const rows=[["토지매매계약·계약금",m.m1,m.m1,1],["인허가 (LH 약정협의 병행)",m.m1,m.m2],["토지잔금·LH 매입약정",m.m3,m.m3,1],["착공 준비",m.m3,m.m4],["공사",m.m4,m.m5],["사용승인·보존등기",m.m5,m.m6],["입주지원·5단계 점검",m.m6,m.m7],["LH 잔금·사업종료",m.m7,m.m7,1]];
+  return `<div class="gantt">${rows.map(([l,a,b,pt])=>`<div class="gr"><span>${l} <span class="muted">${ym(st,a)}${b!==a?"~"+ym(st,b):""}</span></span><div class="track"><div class="bar ${pt?"pt":""}" style="left:calc(${pct(a)}% - ${pt?3:0}px);width:${pct(b-a)}%"></div></div></div>`).join("")}
+  <div class="gr"><span></span><div class="scale"><span>${ym(st,0)}</span><span>${ym(st,Math.round(N/2))}</span><span>${ym(st,N)}</span></div></div></div>`; }
+
+TABS.doc=()=>{ const R=compute(S), m=R.m, st=S.sched.start, I=R.I, sp=S.site, MS=marketStats(S);
+  const para=s=>s?s.split(/\n+/).map(t=>`<p>${esc(t)}</p>`).join(""):"";
+  const liNotes=S.text.notes?`<ul>${S.text.notes.split(/\n+/).map(t=>`<li>${esc(t.replace(/^·\s*/,""))}</li>`).join("")}</ul>`:"";
+  const cr=costRows(R).filter(r=>r[0]==="sub"||r[0]==="tot"||["⑥ 보증료"].includes(r[0]));
+  const byGroup=[["토지비",R.landSub],["건축비",R.buildSub],["제세공과",R.taxSub],["판매비",R.saleSub],["부대비",R.miscSub],["보증수수료",I.hug],["금융비",R.finSub]];
+  const official=R.official;
+  return `<div class="row-actions noprint" style="margin:0 0 12px"><button class="btn pri" type="button" onclick="window.print()">인쇄 / PDF 저장</button><span class="muted" style="font-size:12.5px;align-self:center">현재 입력값으로 자동 작성됩니다. 서술 문단은 [사업개요·입지]에서 수정.</span></div>
+  <article class="doc">
+    <div class="cover"><div class="k">사 업 계 획 서</div><h1>${esc(S.meta.name)}</h1>
+      <p>${esc(S.meta.lhOffice)} · 작성일 ${esc(S.meta.date)} · 금액단위 ${UNIT} (부가세 별도)</p></div>
+
+    <h2>1. 사업 개요</h2>${para(S.text.overview)}
+    <div class="tw"><table><tbody>
+      <tr><th>사업명</th><td>${esc(S.meta.name)}</td><th>사업방식</th><td>LH 민간 신축매입약정 (일괄매입)</td></tr>
+      <tr><th>소재지</th><td colspan="3">${esc(sp.address)}</td></tr>
+      <tr><th>용도지역·지구</th><td>${esc(sp.zone)}${sp.district?" / "+esc(sp.district):""}</td><th>접도</th><td>${esc(sp.roads)}</td></tr>
+      <tr><th>대지면적</th><td>${n0(sp.siteM2,2)}㎡ (${n0(R.landPy,2)}평)</td><th>연면적</th><td>${n0(S.bldg.gfaM2,2)}㎡ (${n0(R.gfaPy,2)}평)</td></tr>
+      <tr><th>세대수</th><td>${n0(R.units)}세대 (${S.units.map(u=>esc(u.type)+" "+u.count+"세대").join(", ")})</td><th>용적률</th><td>${pc(S.bldg.aboveM2/sp.siteM2)} (지상 ${n0(S.bldg.aboveM2)}㎡)</td></tr>
+      <tr><th>시행 / 신탁 / 시공</th><td colspan="3">${esc(S.meta.developer)} / ${esc(S.meta.trustee)} / ${esc(S.meta.contractor)}</td></tr>
+      <tr><th>사업기간</th><td colspan="3">${ym(st,0)} ~ ${ym(st,m.m7)} (${m.m7}개월) · 공사 ${S.sched.cons}개월</td></tr>
+    </tbody></table></div>
+
+    <h2>2. 입지 및 대상지 현황</h2>${para(S.text.location)}${sp.transit?`<p>교통: ${esc(sp.transit)}</p>`:""}
+    <div class="tw"><table><thead><tr><th>지번</th><th>지목</th><th class="n">면적(㎡)</th><th class="n">면적(평)</th><th class="n">공시지가(원/㎡)</th><th>소유</th><th>현황</th></tr></thead><tbody>
+      ${sp.parcels.map(p=>`<tr><td>${esc(p.lot)}</td><td>${esc(p.jimok)}</td><td class="n">${n0(p.m2,1)}</td><td class="n">${n0(p.m2*PY,2)}</td><td class="n">${n0(p.price)}</td><td>${esc(p.owner)}</td><td>${esc(p.status)}</td></tr>`).join("")}
+      <tr class="sub"><td colspan="2">합계</td><td class="n">${n0(sp.parcels.reduce((a,p)=>a+(+p.m2||0),0),1)}</td><td class="n">${n0(sp.parcels.reduce((a,p)=>a+(+p.m2||0),0)*PY,2)}</td><td class="n">공시가 총액 ${eok(official)}</td><td colspan="2"></td></tr></tbody></table></div>
+    ${(sp.plans||[]).length?`<p class="src" style="margin-top:6px">토지이용계획: ${esc(sp.plans.join(", "))}</p>`:""}
+    ${(sp.bldgs||[]).length?`<p class="src">기존 건축물(철거 예정): ${sp.bldgs.map(b=>`${esc(b.lot)} ${esc(b.dong||"")} ${esc(b.purpose)} ${n0(b.totArea,1)}㎡(지상${b.floorsAbove??"-"}/지하${b.floorsBelow??"-"}, ${esc(String(b.useAprDay).slice(0,4))}년 사용승인)`).join(", ")} — 합계 ${n0(sp.bldgs.reduce((a,b)=>a+(b.totArea||0),0),1)}㎡</p>`:""}
+    ${S.text.development?`<h3>주변 개발호재</h3>${para(S.text.development)}`:""}
+    ${MS?docMarket(MS,R,para):(S.text.market||S.comps.length?`<h3>시장 현황</h3>${para(S.text.market)}${compsTable()}`:"")}
+
+    <h2>3. 건축 계획</h2>
+    <div class="tw"><table><tbody>
+      <tr><th>건폐율</th><td>${esc(S.bldg.bcr)}</td><th>용적률</th><td>${esc(S.bldg.far)}</td></tr>
+      <tr><th>지상 연면적</th><td>${n0(S.bldg.aboveM2)}㎡ (${n0(S.bldg.aboveM2*PY,1)}평)</td><th>지하 연면적</th><td>${n0(S.bldg.belowM2)}㎡ (${n0(S.bldg.belowM2*PY,1)}평)</td></tr>
+      <tr><th>규모</th><td>${esc(S.bldg.floors)}</td><th>주차</th><td>${esc(S.bldg.parking)}</td></tr></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>타입</th><th class="n">전용(㎡)</th><th class="n">세대수</th><th class="n">비율</th><th class="n">호당 매입예정가</th></tr></thead><tbody>
+      ${S.units.map(u=>`<tr><td>${esc(u.type)}</td><td class="n">${n0(u.excl,2)}</td><td class="n">${n0(u.count)}</td><td class="n">${pc(u.count/R.units)}</td><td class="n">${n0(u.price/1e6)}백만원</td></tr>`).join("")}</tbody></table></div>
+
+    <h2>4. LH 매입 조건 및 대금 수령 구조</h2>
+    <p>매매예정금액 ${eok(R.rev)}(1차 감정평가 기준) 중 준공 전 누적 ${pc(S.lh.cap,0)}를 토지확보지원금과 착공 후 공사대금으로 선수령하고, 잔금 ${pc(1-S.lh.cap,0)}는 5단계 약정이행점검(입주지원) 완료 후 수령한다.</p>
+    <div class="tw"><table><thead><tr><th>단계</th><th>기준</th><th>시점</th><th class="n">금액</th><th class="n">비중</th></tr></thead><tbody>
+      <tr><td>토지확보지원금</td><td>토지 감정가 ${eok(R.apprLand)} × ${pc(S.land.supportRate,0)}</td><td>${ym(st,m.m3)} 약정체결</td><td class="n">${fm(R.support)}</td><td class="n">${pc(R.support/R.rev)}</td></tr>
+      <tr><td>착공 후 공사대금 (${R.segs.length}회)</td><td>3개월 단위 실제 공정률</td><td>${ym(st,R.segs[0]?.month||0)} ~ ${ym(st,R.segs.at(-1)?.month||0)}</td><td class="n">${fm(R.segSum)}</td><td class="n">${pc(R.segSum/R.rev)}</td></tr>
+      <tr><td>계약금 (정산)</td><td>누적 ${pc(S.lh.cap,0)} 차감정산</td><td>${ym(st,m.m6)} 사용승인</td><td class="n">${fm(R.deposit)}</td><td class="n">${pc(R.deposit/R.rev)}</td></tr>
+      <tr><td>잔금</td><td>최종 매매금액 − 누적 지급액</td><td>${ym(st,m.m7)} 입주지원 완료</td><td class="n">${fm(R.balance)}</td><td class="n">${pc(R.balance/R.rev)}</td></tr>
+      <tr class="tot"><td colspan="3">합계</td><td class="n">${fm(R.rev)}</td><td class="n">100.0%</td></tr></tbody></table></div>
+
+    <h2>5. 사업 추진 일정</h2>${gantt(R)}
+
+    <h2>6. 사업수지</h2>
+    <div class="tw"><table><thead><tr><th>구분</th><th class="n">금액</th><th class="n">비중</th><th class="n">평당(만원)</th></tr></thead><tbody>
+      <tr class="sub"><td>매출 (LH 매매예정금액)</td><td class="n">${fm(R.rev)}</td><td class="n"></td><td class="n">${n0(R.rev/R.gfaPy/1e4)}</td></tr>
+      ${byGroup.map(([l,v])=>`<tr><td>${l}</td><td class="n">${fm(v)}</td><td class="n">${pc(v/R.total)}</td><td class="n">${n0(v/R.gfaPy/1e4)}</td></tr>`).join("")}
+      <tr class="sub"><td>총사업비</td><td class="n">${fm(R.total)}</td><td class="n">100.0%</td><td class="n">${n0(R.total/R.gfaPy/1e4)}</td></tr>
+      <tr class="tot"><td>세전 사업손익</td><td class="n">${fm(R.profit)}</td><td class="n">매출 대비 ${pc(R.margin)}</td><td class="n"></td></tr></tbody></table></div>
+    <p class="src">주요 가정: 토지 ${n0(S.land.unit/1e4)}만원/평, 건축 ${n0(S.cost.buildUnit/1e4)}만원/평(연면적), 추가공사비 ${eok(S.cost.extra)}, 취득세 ${pc(S.land.acqRate,1)}(감면 ${pc(S.land.acqRelief,0)}), 대출금리 연 ${pc(S.fin.rate,1)}.</p>
+
+    <h2>7. 자금조달 계획</h2>
+    <p>자기자본 ${eok(R.equity)}(${R.eqAdd?`토지매입비의 ${pc(S.land.eqRate,0)} ${eok(R.eqBase)}에 HUG 특약보증 한도 부족분 ${eok(R.eqAdd)}을 억원 단위로 증액`:`토지매입비의 ${pc(S.land.eqRate,0)}`})을 토지 계약금 시점에 투입하고, 토지잔금은 LH 토지확보지원금 ${eok(R.support)}과 HUG 도심주택 특약보증부 대출로 충당한다. 착공 후에는 3개월 단위 LH 공사대금으로 대출을 회전 상환하며, 최대 대출잔액은 ${ym(st,R.peakM)}(월${R.peakM}) ${eok(R.peak)}으로 추정된다.</p>
+    <div class="tw"><table><tbody>
+      <tr><td>특약보증 한도 (매입예정가 × ${pc(S.fin.hugBase,0)} × ${pc(S.fin.hugLimit,0)})</td><td class="n">${fm(R.hugCap)}</td></tr>
+      ${R.eqAdd?`<tr><td>자기자본 증액 (보정 전 한도 부족 ${eok(R.eqShort0)})</td><td class="n">${fm(R.eqAdd)}</td></tr>`:""}
+      <tr><td>보증대상 소요액 (총사업비 − 자기자본)</td><td class="n">${fm(R.needLoan)}</td></tr>
+      <tr><td>한도 여유 (+) / 부족 (△)</td><td class="n">${fm(R.hugCap-R.needLoan)}</td></tr>
+      <tr><td>실제 최대 대출잔액</td><td class="n">${fm(R.peak)}</td></tr>
+      <tr><td>금융비 합계 (이자·취급·대리은행)</td><td class="n">${fm(R.finSub)}</td></tr></tbody></table></div>
+    <div class="noprint-chart">${cfChart(R)}</div>
+
+    <h2>8. 수익성 분석</h2>
+    <div class="tw"><table><tbody>
+      <tr><td>세전 사업손익 / 손익률</td><td class="n">${fm(R.profit)} / ${pc(R.margin)}</td></tr>
+      <tr><td>자기자본 Multiple</td><td class="n">${n0(R.moic,2)}x</td></tr>
+      <tr><td>자기자본 IRR (연환산, ${m.m7}개월)</td><td class="n">${pc(R.irr)}</td></tr>
+      <tr><td>호당 사업비 / 호당 손익</td><td class="n">${n0(R.total/R.units/1e6)}백만원 / ${n0(R.profit/R.units/1e6)}백만원</td></tr></tbody></table></div>
+    <h3>민감도 — 호당 매입가 × 건축단가 (세전손익)</h3>${heat("priceR","buildR","호당가","건축단가",v=>(v>0?"+":"")+(v*100)+"%",v=>(v>0?"+":"")+(v*100)+"%")}
+
+    ${S.risks.length?`<h2>9. 리스크 및 대응방안</h2><div class="tw"><table><thead><tr><th>리스크</th><th>수준</th><th>대응방안</th></tr></thead><tbody>
+      ${S.risks.map(r=>`<tr><td>${esc(r.risk)}</td><td><span class="pill ${r.level==="상"?"bad":r.level==="저"?"ok":"mid"}">${esc(r.level)}</span></td><td>${esc(r.plan)}</td></tr>`).join("")}</tbody></table></div>`:""}
+
+    ${liNotes?`<h2>${S.risks.length?10:9}. 가정 및 확인 필요사항</h2>${liNotes}`:""}
+  </article>`; };
+
+/* ============================== 렌더링 ============================== */
+function renderKpis(){ const R=compute(S);
+  $("#projTitle").textContent=S.meta.name||"(사업명)";
+  $("#kpis").innerHTML=[["매출 (LH 매입)",eok(R.rev),`${n0(R.units)}세대 · 호당 ${n0(R.rev/R.units/1e6)}백만`],["총사업비",eok(R.total),`평당 ${n0(R.total/R.gfaPy/1e4)}만원`],
+    ["세전 사업손익",eok(R.profit),`매출 대비 ${pc(R.margin)}`,1],["자기자본",eok(R.equity),R.eqAdd?`토지비 ${pc(S.land.eqRate,0)} + 한도보정 ${eok(R.eqAdd)}`:`토지비 ${pc(S.land.eqRate,0)}`],["Multiple / IRR",`${n0(R.moic,2)}x`,`IRR ${pc(R.irr)} · ${R.m.m7}개월`,1],["최대 대출잔액",eok(R.peak),`${ym(S.sched.start,R.peakM)} (월${R.peakM})`]]
+    .map(([b,s,sm,hl])=>`<div class="kpi ${hl?"hl":""}"><b>${b}</b><span class="${s.startsWith("△")?"neg":""}">${s}</span><small>${sm}</small></div>`).join("");
+}
+function renderLive(){ const R=compute(S), L=k=>document.querySelector(`[data-live="${k}"]`), set=(k,h)=>{ const e=L(k); if(e) e.innerHTML=h; };
+  set("sitePy",`= ${n0(R.landPy,2)}평`); set("gfaPy",`= ${n0(R.gfaPy,2)}평`); set("far",`용적률 ${pc(S.bldg.aboveM2/S.site.siteM2)}`);
+  set("unitsum",`합계 ${n0(R.units)}세대 · 매출 ${eok(R.rev)}`); set("landBuy",`토지매입비 ${eok(R.I.landBuy)}`); set("equity",R.eqAdd?`자기자본 ${eok(R.equity)} = 기본 ${eok(R.eqBase)} + 한도보정 ${eok(R.eqAdd)}`:`자기자본 ${eok(R.equity)} (백만원 올림)`);
+  set("appr",`토지 감정가 ${eok(R.apprLand)}`); set("support",`토지확보지원금 ${eok(R.support)}`); set("consAmt",`공사비 ${eok(R.I.cons)}`);
+  set("curvesum",pc(S.lh.curve.reduce((a,b)=>a+b,0),1));
+  set("curvewarn",Math.abs(S.lh.curve.reduce((a,b)=>a+b,0)-1)>0.0005||S.lh.curve.length!==+S.sched.cons?`<div class="flag"><b>확인</b><span>공정률 ${S.lh.curve.length}개월 · 합계 ${pc(S.lh.curve.reduce((a,b)=>a+b,0),1)} — 공사기간 ${S.sched.cons}개월, 합계 100%가 되어야 합니다.</span></div>`:"");
+  set("gantt",gantt(R));
+  set("taxtable",`<div class="tw"><table><thead><tr><th>과세연도</th><th class="n">과세표준</th><th class="n">재산세</th><th class="n">도시지역분</th><th class="n">지방교육세</th><th class="n">합계 (9월 납부)</th><th class="n">종부세</th></tr></thead><tbody>
+    ${R.taxRows.map(r=>`<tr><td>${r.y}</td><td class="n">${won(r.base)}</td><td class="n">${won(r.prop)}</td><td class="n">${won(r.city)}</td><td class="n">${won(r.edu)}</td><td class="n">${won(r.total)}</td><td class="n">${won(r.comp)}</td></tr>`).join("")||`<tr><td colspan="7" class="muted">보유기간 중 과세기준일(6.1) 없음</td></tr>`}
+    </tbody></table></div><p class="muted" style="font-size:12px;margin:6px 0 0">과세표준 = 공시지가 총액 ${won(R.official)}원 × (1+상승률)^(연도−기준연도) × 공정시장가액비율. 원 단위.</p>`);
+}
+function render(){
+  document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===TAB?"page":"false"));
+  document.querySelectorAll("#unitSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.u===UNIT?"true":"false"));
+  $("#panel").innerHTML=TABS[TAB](); renderKpis(); renderLive();
+}
+const INPUT_TABS=new Set(["overview","plan","land","cost","fin"]);
+function recalc(){ renderKpis(); if(INPUT_TABS.has(TAB)) renderLive(); else $("#panel").innerHTML=TABS[TAB](); save(); }
+
+/* ============================== 이벤트 ============================== */
+$("#nav").addEventListener("click",e=>{ const b=e.target.closest("button[data-tab]"); if(!b) return; TAB=b.dataset.tab; save(); render(); window.scrollTo({top:0}); });
+$("#unitSeg").addEventListener("click",e=>{ const b=e.target.closest("button[data-u]"); if(!b) return; UNIT=b.dataset.u; save(); render(); });
+$("#panel").addEventListener("input",e=>{ const el=e.target; if(!el.dataset.p) return;
+  const v=el.dataset.k==="bool"?el.checked:parseIn(el); setP(S,el.dataset.p,v); recalc(); });
+$("#panel").addEventListener("change",e=>{ const el=e.target;
+  if(el.id==="pdfFile"&&el.files&&el.files[0]){ readPdf(el.files[0]); el.value=""; return; }
+  if(el.id==="landFile"&&el.files&&el.files[0]){ const fr=new FileReader(); fr.onload=()=>{ try{ loadLand(JSON.parse(fr.result)); }catch(err){ toast("불러오지 못했습니다: "+err.message); } }; fr.readAsText(el.files[0],"utf-8"); el.value=""; return; }
+  if(el.id==="mktFile"&&el.files&&el.files[0]){ const fr=new FileReader(); fr.onload=()=>{ try{ loadMarket(JSON.parse(fr.result)); }catch(err){ toast("불러오지 못했습니다: "+err.message); } }; fr.readAsText(el.files[0],"utf-8"); return; } if(el.dataset.k==="num"&&el.value!==""){ el.value=Number(parseIn(el)).toLocaleString("ko-KR",{maximumFractionDigits:6}); }
+  if(el.dataset.p==="sched.cons" && TAB==="fin"){ /* 공사기간 변경 → 곡선 길이 경고는 LH 탭에서 */ } });
+$("#panel").addEventListener("click",e=>{
+  const a=e.target.closest("[data-add]"), d=e.target.closest("[data-del]");
+  if(a){ getP(S,a.dataset.add).push({...NEWROW[a.dataset.add]}); recalc(); render(); }
+  if(d){ getP(S,d.dataset.del).splice(+d.dataset.i,1); recalc(); render(); }
+  if(e.target.id==="bCurve"){ S.lh.curve=sCurve(+S.sched.cons); const s=S.lh.curve.reduce((x,y)=>x+y,0); S.lh.curve[S.lh.curve.length-1]=+(S.lh.curve.at(-1)+1-s).toFixed(4); recalc(); render(); toast("표준 S-곡선을 생성했습니다"); }
+  if(e.target.id==="bLandApply") applyLand();
+  if(e.target.id==="bLandDiscard"){ LAND.data=null; landSet(""); }
+  if(e.target.id==="bLandPaste") openDlg("토지·건물 데이터 가져오기","out/land.json 내용을 붙여넣고 [적용]을 누르세요.","",true);
+  if(e.target.id==="bPdfApply") applyPdf();
+  if(e.target.id==="bPdfDiscard"){ PDF.result=null; pdfSet(""); }
+  if(e.target.id==="bPdfStop") PDF.ctl?.abort();
+  if(e.target.id==="bCompsAuto"){ if(autoComps()){ recalc(); render(); toast("시장현황 요약으로 사례를 채웠습니다"); } }
+  if(e.target.id==="bMktPaste") openDlg("시장 데이터 가져오기","out/market.json 내용을 붙여넣고 [적용]을 누르세요.","",true);
+  if(e.target.id==="bMktClear"){ if(confirm("불러온 시장 데이터를 지웁니다.")){ S.market=null; recalc(); render(); } }
+  if(e.target.id==="bMktText"){ const MS=marketStats(S); if(MS){ S.text.market=marketText(MS); recalc(); toast("시장 현황 문단을 교체했습니다"); } }
+  if(e.target.id==="bTsv"){ const R=compute(S); const t=["구분\t항목\t금액(원)\t산출근거","매출\tLH 매매예정금액\t"+Math.round(R.rev)+"\t"]
+      .concat(costRows(R).map(([g,l,v,n])=>`${g==="sub"||g==="tot"?"":g}\t${l}\t${Math.round(v)}\t${n||""}`)).concat(["\t세전 사업손익\t"+Math.round(R.profit)+"\t"]).join("\n");
+    openDlg("사업수지표 (TSV)","전체 선택 후 엑셀에 붙여넣으세요.",t,false); }
+});
+function toast(t){ const el=document.createElement("div"); el.className="toast"; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),1800); }
+const dlg=$("#dlg"); let dlgApply=false;
+function openDlg(title,hint,text,apply){ $("#dlgTitle").textContent=title; $("#dlgHint").textContent=hint; $("#dlgText").value=text; $("#dlgOk").hidden=!apply; dlgApply=apply; dlg.showModal(); $("#dlgText").select(); }
+$("#dlgClose").onclick=()=>dlg.close();
+$("#dlgCopy").onclick=async()=>{ const ta=$("#dlgText"); ta.select(); try{ await navigator.clipboard.writeText(ta.value); toast("복사했습니다"); }catch(e){ try{ document.execCommand("copy"); toast("복사했습니다"); }catch(_){ toast("Ctrl+C로 복사하세요"); } } };
+$("#dlgOk").onclick=()=>{ let o; try{ o=JSON.parse($("#dlgText").value); }catch(e){ toast("JSON 형식이 올바르지 않습니다 — 파일 내용을 그대로 붙여넣으세요"); return; }
+  if(o&&o.kind==="lh-plan-land"){ try{ dlg.close(); if(TAB!=="overview"){ TAB="overview"; render(); } loadLand(o); }catch(e){ toast(e.message); } return; }
+  if(o&&o.kind==="lh-plan-market"){ try{ loadMarket(o); dlg.close(); }catch(e){ toast(e.message); } return; }
+  if(!o||!o.site||!o.units||!o.sched){ toast("사업 데이터(JSON 내보내기) 또는 market.json 이 아닙니다"); return; }
+  S=normalize(o); save(); dlg.close(); render(); toast("불러왔습니다"); };
+$("#bExport").onclick=()=>openDlg("사업 데이터 내보내기","이 텍스트를 저장해 두면 [JSON 가져오기]로 그대로 복원됩니다.",JSON.stringify(S,null,1),false);
+$("#bImport").onclick=()=>openDlg("사업 데이터 가져오기","내보내기로 저장한 JSON을 붙여넣고 [적용]을 누르세요.","",true);
+$("#bSample").onclick=()=>{ if(!confirm("현재 입력을 부천 춘의동 샘플로 바꿉니다. 계속할까요?")) return; S=normalize(JSON.parse(JSON.stringify(SAMPLE))); autoComps(); save(); render(); toast("샘플을 불러왔습니다"); };
+$("#bNew").onclick=()=>{ if(!confirm("빈 양식으로 새로 시작합니다. 현재 입력은 사라집니다(필요하면 먼저 내보내기).")) return; S=JSON.parse(JSON.stringify(BLANK)); TAB="overview"; save(); render(); };
+
+if(S.meta.name===SAMPLE.meta.name && Math.abs((+S.bldg.existingPy||0)-655.1545245685)<1e-6){ S.bldg.existingPy=SAMPLE.bldg.existingPy; S.site.plans=SAMPLE.site.plans; S.site.bldgs=SAMPLE.site.bldgs; save(); }
+if(S.market && S.meta.name===SAMPLE.meta.name && (!S.comps.length || S.comps.every(c=>c.cat==="수동"))){ autoComps(); save(); }
+render();
+</script>
